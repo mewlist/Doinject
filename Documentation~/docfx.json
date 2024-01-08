@@ -1,0 +1,32 @@
+{
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "mystatictoc"
+    ],
+    "globalMetadata": {
+      "_appName": "Doinject",
+      "_appTitle": "Doinject",
+      "_enableSearch": false,
+      "pdf": false
+    }
+  }
+}

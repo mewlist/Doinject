@@ -1,0 +1,23 @@
+{
+    "name": "Doinject",
+    "rootNamespace": "Doinject",
+    "references": [
+        "GUID:f610cb163d12544488a6127c7f91f4c6",
+        "GUID:adf0022e8cf2a164fb451e35e1458e78"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.addressables",
+            "expression": "",
+            "define": "USE_MEW_CORE_ASSETS"
+        }
+    ],
+    "noEngineReferences": false
+}

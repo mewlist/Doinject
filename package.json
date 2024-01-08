@@ -1,0 +1,19 @@
+{
+  "name": "st.mewli.di",
+  "displayName": "Doinject",
+  "version": "0.0.0",
+  "unity": "2023.2",
+  "description": "Asynchronous DIContainer for Unity",
+  "author": {
+    "name": "mewlist",
+    "url": "https://github.com/mewlist"
+  },
+
+  "keywords": [
+    "DIContainer",
+    "Dependency Injection",
+    "Doinject"
+  ],
+
+  "dependencies": {}
+}

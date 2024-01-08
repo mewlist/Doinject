@@ -1,0 +1,10 @@
+using Doinject;
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "Doinject/Installers/#SCRIPTNAME#", fileName = "#SCRIPTNAME#", order = 0)]
+public class #SCRIPTNAME# : BindingInstallerScriptableObject
+{
+    public override void Install(DIContainer container)
+    {
+    }
+}

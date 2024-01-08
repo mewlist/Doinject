@@ -1,0 +1,9 @@
+using Doinject;
+
+public class #SCRIPTNAME# : BindingInstallerComponent
+{
+    public override void Install(DIContainer container)
+    {
+        // Bind your dependencies here
+    }
+}

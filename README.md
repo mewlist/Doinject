@@ -1,4 +1,4 @@
-# MewDI
+# Doinject
 Asynchronous DI Container for Unity
 
 ![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
