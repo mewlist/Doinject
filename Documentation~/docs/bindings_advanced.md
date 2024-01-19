@@ -82,3 +82,34 @@ container.Bind<IPlayer>()
     .FromResolver<CustomResolver>();
 ```
 
+## ファクトリを通じた引数渡し
+
+コンストラクタやインジェクションポイントとなるメソッドが引数を要求する場合は、
+引数の型を指定して ```AsFactory<TArg1, ...>()``` を呼び出します。
+
+```csharp
+private class SomeObject
+{
+    public SomeObject(int someArg)
+    {
+        ...
+    }
+}
+```
+
+このようにコンストラクタに引数をもつクラスの場合は、以下のように、int 型を指定します。
+
+```csharp
+container.Bind<SomeObject>().AsFactory<int>()
+```
+
+引数を渡すには、```CreateAsync()``` の引数に渡します。
+
+```csharp
+public class Construct(IFactory<SomeObject> factory)
+{
+    var someObject = await factory.CreateAsync(123);
+}
+```
+
+AsFactory への引数指定は最大四つまで対応しています。
