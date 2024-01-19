@@ -20,7 +20,7 @@
     "output": "_site",
     "template": [
       "default",
-      "mystatictoc"
+      "templates/doinject"
     ],
     "globalMetadata": {
       "_appName": "Doinject",
