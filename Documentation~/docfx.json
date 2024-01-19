@@ -25,6 +25,7 @@
     "globalMetadata": {
       "_appName": "Doinject",
       "_appTitle": "Doinject",
+      "_appLogoPath" : "images/Logo_Header.svg",
       "_enableSearch": false,
       "pdf": false
     }

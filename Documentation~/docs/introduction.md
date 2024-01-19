@@ -1,5 +1,7 @@
 # Doinject について
 
+![Logo.svg](../images/Logo.svg)
+
 Doinject は、Unity 向けの非同期 DI(Dependency Injection) フレームワークです。
 
 非同期DIコンテナというコンセプトが起点となっています。
