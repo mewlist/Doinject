@@ -218,6 +218,19 @@ namespace Doinject.Tests
             }
         }
 
+        private class PlayerFactoryWithArgs : IFactory<int, IPlayer>
+        {
+            // ReSharper disable once UnusedMember.Global
+            public ValueTask<IPlayer> CreateAsync(int arg1)
+            {
+                var player = arg1 < 10
+                    ? (IPlayer)new NovicePlayer()
+                    : new ElderPlayer();
+                player.Level = arg1;
+                return new ValueTask<IPlayer>(player);
+            }
+        }
+
         [TestCase(9)]
         [TestCase(99)]
         public async Task CustomFactoryTest(int playerLevel)
@@ -229,6 +242,23 @@ namespace Doinject.Tests
             var factory = await container.ResolveAsync<PlayerFactory>();
 
             var instance = await factory.CreateAsync();
+            if (playerLevel < 10)
+                Assert.That(instance, Is.TypeOf<NovicePlayer>());
+            else
+                Assert.That(instance, Is.TypeOf<ElderPlayer>());
+        }
+
+        [TestCase(9)]
+        [TestCase(99)]
+        public async Task CustomFactoryWithArgsTest(int playerLevel)
+        {
+            container.BindFromInstance(new PlayerLevel(playerLevel));
+            container.Bind<IPlayer>()
+                .AsCustomFactory<PlayerFactoryWithArgs>();
+
+            var factory = await container.ResolveAsync<PlayerFactoryWithArgs>();
+
+            var instance = await factory.CreateAsync(playerLevel);
             if (playerLevel < 10)
                 Assert.That(instance, Is.TypeOf<NovicePlayer>());
             else

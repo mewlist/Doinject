@@ -289,21 +289,30 @@ public SomeClass(int someInt, ISomeInterface someInterface, string someString)
 
 ## ファクトリ
 
-ファクトリを定義することで、指定したインスタンスを生成するファクトリが注入できるようになります。
-ファクトリインスタンスに対して、```CreateAsync()``` メソッドを呼び出すことで、インスタンスを生成することができます。
-
-ファクトリの生成は AsFactory() を呼び出すだけです。
-
-> [!NOTE]
-> インスタンス生成を行わない記述(```FromInstance()``` ```BindPrefabAssetReference()```)ではファクトリ生成記述はできません。
+ファクトリを生成する方法は、バインディング記述に対して　```AsFactory()``` を呼び出すだけです。
+バインディング記述に応じた、IFactory<T> が自動的にバインドされます。
 
 ```cshar
 container.Bind<SomeClass>()
     .AsFactory();
 ```
 
-```IFactory<SomeClass>``` がバインドされます。
-注入は以下のように ```IFactory<SomeClass>``` を受け取るようにします。
+このように記述することで、```IFactory<SomeClass>``` がバインドされます。
+
+ファクトリを定義することで、指定したインスタンスを生成するファクトリが注入できるようになります。
+ファクトリインスタンスに対して、```CreateAsync()``` メソッドを呼び出すことで、インスタンスを生成することができます。
+
+```csharp
+
+IFactory<SomeClass> factory;
+...
+var instance = await factory.CreateAsync();
+```
+
+> [!IMPORTANT]
+> インスタンス生成を行わない記述(```FromInstance()``` ```BindPrefabAssetReference()```)ではファクトリ生成記述はできません。
+
+ファクトリを使用するには、以下のように ```IFactory<SomeClass>``` を注入してもらいます。
 
 ```csharp
 public class SomeClass
@@ -322,10 +331,11 @@ public class SomeClass
 }
 ```
 
-ファクトリを介して生成されたインスタンスは、```AsTransient()``` と同様に、注入対象ごとに、別々のインスタンスが生成されます。
-また、生成されたインスタンスは、DIコンテナの管理から外れ、DIコンテナが解放されたタイミングで、自動的に破棄されない可能性があるため、注意が必要です。
+> [!NOTE]
+> ファクトリを介して生成されたインスタンスは、```AsTransient()``` と同様に、注入対象ごとに、別々のインスタンスが生成されます。
+> また、生成されたインスタンスは、DIコンテナの管理から外れ、DIコンテナが解放されたタイミングで、自動的に破棄されない可能性があるため、注意が必要です。
 
-これまで示してきたバインディング書式をそのまま使用できます。
+これまで示してきたバインディング書式をそのまま使用できるので、
 自由に組み合わせて、様々なバインディングを柔軟に平易な記述で行うことができます。
 
 以下、例を示します。
@@ -337,9 +347,12 @@ container.Bind<ISomeInterface>()
     .To<SomeClass>()
     .Args(123, "some argument string")
     .AsFactory();
+
+// IFacoty<ISomeInterface> がバインディングされます。
+[Inject] async Task Construct(IFacoty<SomeComponent> factory)
+{ ... }
 ```
 
-```IFacoty<ISomeInterface>``` がバインディングされます。
 
 ### コンポーネントファクトリ
 
@@ -347,9 +360,11 @@ container.Bind<ISomeInterface>()
 container.Bind<SomeComponent>()
     .On(someGameObject)
     .AsFactory();
-```
 
-```IFacoty<SomeComponent>``` がバインディングされます。
+// IFacoty<SomeComponent> がバインディングされます。
+[Inject] async Task Construct(IFacoty<SomeComponent> factory)
+{ ... }
+```
 
 
 ### プレハブインスタンスファクトリ
@@ -359,10 +374,11 @@ container.BindPrefab<SomeComponent>(somePrefab)
     .Under(someTransform)
     .Args(123, "some argument string")
     .AsFactory();
+
+// IFacoty<SomeComponent> がバインディングされます。
+[Inject] async Task Construct(IFacoty<SomeComponent> factory)
+{ ... }
 ```
-
-```IFacoty<SomeComponent>``` がバインディングされます。
-
 
 ### Addressable Asset プレハブインスタンスファクトリ
 
@@ -371,6 +387,10 @@ container.BindPrefabAssetReference<SomeComponent>(prefabAssetReference)
     .UnderSceneRoot()
     .Args(123, "some argument string")
     .AsFactory();
+
+// IFacoty<SomeComponent> がバインディングされます。
+[Inject] async Task Construct(IFacoty<SomeComponent> factory)
+{ ... }
 ```
 
-```IFacoty<SomeComponent>``` がバインディングされます。
+
