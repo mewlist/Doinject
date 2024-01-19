@@ -63,10 +63,10 @@ container.Bind<SomeComponent>();
 
   ```csharp
   container.Bind<SomeComponent>()
-    .Under(someTransform);
+    .UnderSceneRoot();
   ```
 
-* 指定した ```Transfrom``` の子オブジェクトとして生成さ
+* 指定した ```Transfrom``` の子オブジェクトとして生成
     
     ```csharp
     container.Bind<SomeComponent>()
@@ -188,7 +188,7 @@ container.BindCached<SomeClass>();　// 上記の省略形
 
 ```csharp
 container.Bind<SomeClass>()
-    .AsSingleton(); // 明示的
+    .AsSingleton();
 
 container.BindSingleton<SomeClass>();　// 上記の省略形
 ```
