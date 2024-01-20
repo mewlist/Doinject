@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Mew.Core.Extensions;
+using Mew.Core.TaskHelpers;
 using Mew.Core.UnityObjectHelpers;
 using Unity.Collections;
 using UnityEngine;
@@ -19,9 +21,11 @@ namespace Doinject
         internal Dictionary<TargetTypeInfo, BinderContext> BinderMap { get; } = new();
         private Dictionary<TargetTypeInfo, IInternalResolver> Resolvers { get; } = new();
         private InstanceBag InstanceBag { get; } = new();
+        private CancellationTokenSource CancellationTokenSource { get; } = new();
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => InstanceBag.ReadOnlyInstanceMap;
+
 
 
         public DIContainer(IReadOnlyDIContainer parent = null, Scene scene = default)
@@ -294,9 +298,17 @@ namespace Doinject
                 }
             }
 
+            TryCallOnInjectedCallback(target, methods).Forget();
+        }
+
+        private async ValueTask TryCallOnInjectedCallback<T>(T target, IEnumerable<MethodInfo> methods)
+        {
             var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
             if (onInjectedCallback is not null)
             {
+                await TaskHelper.NextFrame();
+                if (CancellationTokenSource.IsCancellationRequested) return;
+
                 if (onInjectedCallback.ReturnType == typeof(Task))
                 {
                     var task = (Task)onInjectedCallback.Invoke(target, Array.Empty<object>());
@@ -406,6 +418,10 @@ namespace Doinject
 
         public async ValueTask DisposeAsync()
         {
+            if (CancellationTokenSource.IsCancellationRequested) return;
+            CancellationTokenSource.Cancel();
+            CancellationTokenSource.Dispose();
+
             await Task.WhenAll(Resolvers.Select(x => x.Value.DisposeAsync().AsTask()));
             Resolvers.Clear();
             await InstanceBag.DisposeAsync();

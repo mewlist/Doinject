@@ -79,8 +79,7 @@ namespace Doinject.Context
         private async Task InjectIntoUnderContextObjects()
         {
             var targets = GetComponentsUnderContext<IInjectableComponent>();
-            foreach (var injectable in targets)
-                await Context.Container.InjectIntoAsync(injectable);
+            await Task.WhenAll(targets.Select(x => Context.Container.InjectIntoAsync(x).AsTask()));
         }
 
         private T[] GetComponentsUnderContext<T>()
