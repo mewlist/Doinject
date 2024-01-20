@@ -8,5 +8,6 @@ namespace Doinject.Context
         GameObject ContextObject { get; }
         Context Context { get; }
         SceneContextLoader OwnerSceneContextLoader { get; }
+        SceneContextLoader SceneContextLoader { get; }
     }
 }

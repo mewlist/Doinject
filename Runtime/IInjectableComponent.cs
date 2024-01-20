@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Doinject
+﻿namespace Doinject
 {
     public interface IInjectableComponent
     {

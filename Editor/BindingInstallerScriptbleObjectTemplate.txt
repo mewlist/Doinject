@@ -6,5 +6,6 @@ public class #SCRIPTNAME# : BindingInstallerScriptableObject
 {
     public override void Install(DIContainer container)
     {
+        // Bind your dependencies here
     }
 }

@@ -17,16 +17,17 @@ namespace Doinject.Context
             return SceneContextMap.TryGetValue(scene, out sceneContext);
         }
 
-        public SceneContextLoader OwnerSceneContextLoader { get; set; }
+        public GameObject ContextObject => gameObject;
         public Context Context { get; private set; }
+        public SceneContextLoader OwnerSceneContextLoader { get; set; }
         public SceneContextLoader SceneContextLoader { get; private set; }
+
         public Scene Scene => Context.Scene;
 
-        public GameObject ContextObject => gameObject;
 
-        public async Task Initialize(Scene scene, SceneContext parentContext, SceneContextLoader sceneContextLoader)
+        public async Task Initialize(Scene scene, IContext parentContext, SceneContextLoader sceneContextLoader)
         {
-            Context = new Context(scene, parentContext ? parentContext.Context : null);
+            Context = new Context(scene, parentContext?.Context);
             if (GetComponentsUnderContext<SceneContext>().Any(x => x != this))
                 throw new InvalidOperationException("Do not place SceneContext statically in scene.");
             OwnerSceneContextLoader = sceneContextLoader;

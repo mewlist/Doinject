@@ -14,7 +14,7 @@ namespace Doinject.Context
     public class SceneContextLoader : MonoBehaviour, IAsyncDisposable
     {
         private SceneLoader SceneLoader { get; } = new();
-        private SceneContext SceneContext { get; set; }
+        private IContext SceneContext { get; set; }
         private List<SceneContext> ChildSceneContexts { get; } = new();
         public IReadOnlyList<SceneContext> ReadonlyChildSceneContexts => ChildSceneContexts;
         private TaskQueue TaskQueue { get; } = new();
@@ -33,7 +33,7 @@ namespace Doinject.Context
             await SceneLoader.DisposeAsync();
         }
 
-        public void SetContext(SceneContext sceneContext)
+        public void SetContext(IContext sceneContext)
         {
             SceneContext = sceneContext;
         }

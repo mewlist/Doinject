@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Doinject.Context
 {
-    public class GameObjectContext : MonoBehaviour, IInjectableComponent, IContext
+    public class GameObjectContext : MonoBehaviour, IInjectableComponent, IContext, IGameObjectContextRoot
     {
+        public GameObject ContextObject => gameObject;
         public Context Context { get; private set; }
-        public SceneContextLoader OwnerSceneContextLoader => ParentContext.OwnerSceneContextLoader;
+        public SceneContextLoader OwnerSceneContextLoader => ParentContext.SceneContextLoader;
+        public SceneContextLoader SceneContextLoader { get; private set; }
         private IContext ParentContext { get; set; }
         private bool Initialized { get; set; }
-
-        public GameObject ContextObject => gameObject;
 
         public async Task Initialize()
         {
@@ -21,9 +21,12 @@ namespace Doinject.Context
             ParentContext = FindParentContext();
             if (ParentContext is null) return;
 
+            Context = new Context(gameObject, ParentContext.Context);
+            SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
+            SceneContextLoader.SetContext(this);
+
             Initialized = true;
 
-            Context = new Context(gameObject, ParentContext.Context);
             await InstallBindings();
             await InjectIntoUnderContextObjects();
         }
@@ -62,6 +65,7 @@ namespace Doinject.Context
         private async void OnDestroy()
         {
             if (Context is null) return;
+            if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             await Context.DisposeAsync();
             if (gameObject) Destroy(gameObject);
         }
@@ -70,6 +74,7 @@ namespace Doinject.Context
         {
             if (!Initialized) await Initialize();
             Context.Container.Bind<IContext>().FromInstance(this);
+            Context.Container.BindFromInstance(SceneContextLoader);
             var targets = GetComponentsUnderContext<IBindingInstaller>();
             foreach (var component in targets)
                 if (component is IBindingInstaller installer)

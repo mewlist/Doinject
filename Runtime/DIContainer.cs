@@ -242,6 +242,9 @@ namespace Doinject
                 SceneManager.MoveGameObjectsToScene(instanceIds, Scene);
             }
 
+            if (go.GetComponent(typeof(IGameObjectContextRoot)))
+                return instance;
+
             foreach (var component in go.GetComponentsInChildren(typeof(IInjectableComponent)))
                 await InjectIntoAsync(component, args: args);
 

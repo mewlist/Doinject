@@ -20,6 +20,7 @@ public class CustomComponentBindingInstallerScript : BindingInstallerComponent
 {
     public override void Install(DIContainer container)
     {
+        base.Install(container);
         // Bind your dependencies here
     }
 }
