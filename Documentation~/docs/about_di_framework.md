@@ -30,11 +30,11 @@ class SomeClass
 
 SomeClass はコンストラクタで SomeDependency を new していて、SomeClass が SomeDependency に依存しています。
 
-<pre class="mermaid">
+```mermaid
 classDiagram
 direction LR
     SomeClass ..|> SomeDependency
-</pre>
+```
 
 SomeClass は、SomeDependency について、その生成手順まで知らなければなりませんし、
 SomeDependency を必要とする他のクラスがある場合、ここで書かれているような生成処理が同様に書かれることになるでしょう。
@@ -97,11 +97,11 @@ class SomeClass
 }
 ```
 
-<pre class="mermaid">
+```mermaid
 classDiagram
 direction LR
     SomeClass ..|> SomeDependency
-</pre>
+```
 
 SomeClass は SomeDependency に依存した状態です。
 ここで、ISomeDependency というインターフェースを置くことで、以下のように書き換えられるでしょう。
@@ -131,18 +131,18 @@ class SomeClass
 
 この変化をクラス図を通して見てみると、以下のようになります。
 
-<pre class="mermaid">
+```mermaid
 classDiagram
 direction LR
     SomeClass ..|> SomeDependency
-</pre>
+```
 
-<pre class="mermaid">
+```mermaid
 classDiagram
 direction LR
     SomeClass ..|> ISomeDependency
     ISomeDependency <|.. SomeDependency
-</pre>
+```
 
 並べてみると、SomeDependency に入ってきた矢印の方向が逆方向になっていることに気づきます。
 この状態を依存関係の逆転と言います。

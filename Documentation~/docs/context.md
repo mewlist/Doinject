@@ -3,7 +3,7 @@
 コンテクスト空間とは、DIフレームワークが扱う対象となるオブジェクトや、DIコンテナによって生成されたインスタンスを括ったものです。
 コンテクスト空間は、シーンやゲームオブジェクトに対して定義されます。
 
-![ContextSpace](../images/ContextSpace.jpg)
+![ContextSpace](../images/ContextSpace.jpg){width=500px}
 
 ## シーンコンテクスト空間
 
@@ -243,6 +243,7 @@ await sceneContextLoader.LoadAsync(nextScene, active: true);
 
 public IContext Context { get; set; }
 
+[Inject]
 void Constrruct(IContext context)
 {
     Context = context;

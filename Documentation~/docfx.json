@@ -20,12 +20,19 @@
     "output": "_site",
     "template": [
       "default",
-      "templates/doinject"
+      "modern",
+      "template"
     ],
+    "markdownEngineProperties": {
+      "markdigExtensions": [
+        "attributes"
+      ]
+    },
     "globalMetadata": {
       "_appName": "Doinject",
       "_appTitle": "Doinject",
       "_appLogoPath" : "images/Logo_Header.svg",
+      "_appFooter": "<span>mewlist</span>",
       "_enableSearch": false,
       "pdf": false
     }
