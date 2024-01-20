@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Mew.Core.UnityObjectHelpers;
 using Mew.Core.Tasks;
 using UnityEngine;
@@ -39,11 +40,19 @@ namespace Doinject.Context
         {
             await TaskQueue.EnqueueAsync(async ct =>
             {
+                await RebootInternal(ct);
+            });
+        }
+
+        private async Task RebootInternal(CancellationToken ct)
+        {
+            if (SceneContext)
+            {
                 await SceneContext.SceneContextLoader.UnloadAllScenesAsync();
                 await UnityObjectHelper.DestroyAsync(SceneContext);
-                Resources.UnloadUnusedAssets();
-                await StartContext();
-            });
+            }
+            Resources.UnloadUnusedAssets();
+            await StartContext();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Mew.Core.Assets;
+using Mew.Core.Tasks;
 using Mew.Core.UnityObjectHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,9 +17,18 @@ namespace Doinject.Context
         private SceneContext SceneContext { get; set; }
         private List<SceneContext> ChildSceneContexts { get; } = new();
         public IReadOnlyList<SceneContext> ReadonlyChildSceneContexts => ChildSceneContexts;
+        private TaskQueue TaskQueue { get; } = new();
+        private bool Disposed { get; set; }
+
+        private void Awake()
+        {
+            TaskQueue.Start();
+        }
 
         private async void OnDestroy()
         {
+            Disposed = true;
+            TaskQueue.Dispose();
             await UnloadAllScenesAsync();
             await SceneLoader.DisposeAsync();
         }
@@ -39,8 +49,20 @@ namespace Doinject.Context
             return await LoadAsync(new UnifiedScene { SceneAssetReference = sceneAssetReference }, active);
         }
 #endif
+        public async ValueTask<SceneContext> LoadAsync(UnifiedScene unifiedScene, bool active)
+        {
+            if (Disposed) return null;
+            if (!unifiedScene.IsValid)
+                throw new Exception("Cannot load scene. SceneReference is not valid.");
+            var sceneContext = default(SceneContext);
+            await TaskQueue.EnqueueAsync(async ct =>
+            {
+                sceneContext = await LoadAsyncInternal(unifiedScene, active, ct);
+            });
+            return sceneContext;
+        }
 
-        public async ValueTask<SceneContext> LoadAsync(UnifiedScene unifiedScene, bool active, CancellationToken cancellationToken = default)
+        private async ValueTask<SceneContext> LoadAsyncInternal(UnifiedScene unifiedScene, bool active, CancellationToken cancellationToken = default)
         {
             var scene = await SceneLoader.LoadAsync(unifiedScene, cancellationToken);
             if (!scene.IsValid()) return null;
@@ -58,18 +80,32 @@ namespace Doinject.Context
 
         public async ValueTask UnloadAsync(SceneContext context)
         {
+            await TaskQueue.EnqueueAsync(async ct =>
+            {
+                await UnloadAsyncInternal(context);
+            });
+        }
+
+        private async ValueTask UnloadAsyncInternal(SceneContext context)
+        {
+            var sceneName = context.Scene.name;
             if (!ChildSceneContexts.Contains(context)) return;
 
             foreach (var childSceneContext in ChildSceneContexts.ToArray())
                 await childSceneContext.SceneContextLoader.UnloadAllScenesAsync();
 
             ChildSceneContexts.Remove(context);
+
             context.Dispose();
+
             await SceneLoader.UnloadAsync(context.Scene);
         }
 
         public async ValueTask UnloadAllScenesAsync()
         {
+            if (Disposed) return;
+            if (!ChildSceneContexts.Any()) return;
+
             await Task.WhenAll(ChildSceneContexts.ToArray().Select(x => UnloadAsync(x).AsTask()));
         }
 
