@@ -58,6 +58,73 @@ SceneContext　は、フレームワークにより自動的に生成される�
 DIコンテナにインスタンスを登録して、インジェクションを行ってみましょう。
 インスタンスの登録(バインディングと言います)はインストーラというコンポーネントから行います。
 
+## 注入ポイントについて
+
+DIコンテナに登録された型を、特定のインスタンスへ注入するためには、以下二通りの方法があります
+
+* コンストラクタインジェクション
+* メソッドインジェクション
+
+コンストラクタインジェクションは、DIコンテナを通じてインスタンスを生成する際に自動的に行われます。
+メソッドインジェクションは、[Inject] 属性をつけたメソッドを呼び出すことで行われます。
+
+> [!NOTE]
+> DIコンテナを通じて生成されるインスタンスは、そのコンストラクタに自動的に依存注入を試みるため、[Inject]　属性は不要です。
+> 明示的に [Inject] 属性をつけても問題はありませんが、その属性定義に依存してしまうことを考慮に入れる必要があります。
+
+MonoBehaviour を継承したコンポーネントの場合、コンストラクタインジェクションは使えません。
+コンポーネントの生成は、Unity が行うため、明示的にコンストラクタを呼び出すことができないためです。
+そのため、必ずメソッドインジェクションを使う必要があります。
+
+### コンストラクタインジェクション
+
+```csharp
+class SomeClass
+{
+    // SomeClass の生成時に、自動的に SomeDependency が注入されます
+    public SomeClass(SomeDependency dependency)
+    {
+        ...
+    }
+}
+```
+
+### メソッドインジェクション
+
+```csharp
+class SomeClass
+{
+    // [Inject] 属性をつけたメソッドは、インスタンスの生成後、DIコンテナによって呼び出され　SomeDependency を引数に渡します
+    [Inject]
+    public InjectMethod(SomeDependency dependency)
+    {
+        ...
+    }
+}
+```
+
+### 注入完了コールバック
+
+```OnInjected()``` という名称・引数なし・public なメソッドは、
+インスタンスの注入が完了したタイミングで、自動的に呼び出されます。
+Task, ValueTask の戻り値を持つ非同期関数であっても問題ありません。
+
+```csharp
+class SomeClass
+{
+    public SomeClass(SomeDependency dependency)
+    {
+        ...
+    }
+
+    // インスタンスの注入が完了したタイミングで、自動的に呼び出されます
+    public void OnInjected()
+    {
+        ...
+    }
+}
+```
+
 ### インストーラスクリプトの作成
 
 インストーラは、`Doinject` メニューから作成することができます。Project ビューで右クリックし、
@@ -180,9 +247,6 @@ Player のコンストラクタに Args で指定した引数が渡り(コンス
 > var injectable = Object.FindComponents(typeof(IInjectableComponent)).First();
 > (injectable as InjectTargetScript).Construct(player)
 > ```
-
-ちなみに、DI により生成されるインスタンスは、そのコンストラクタに自動的に依存注入を試みるため、[Inject]　属性は不要です。
-明示的に [Inject] 属性をつけても問題はありませんが、その属性定義に依存してしまうことを考慮に入れる必要があります。
 
 ### 動作確認の補足
 
