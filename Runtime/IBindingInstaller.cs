@@ -1,7 +1,8 @@
-﻿namespace Doinject
+﻿
+namespace Doinject
 {
     public interface IBindingInstaller
     {
-        void Install(DIContainer container);
+        void Install(DIContainer container, IContextArg contextArg);
     }
 }

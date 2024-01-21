@@ -8,7 +8,6 @@
 
         public InstanceBinder(BinderContext context, TInstance instance)
         {
-            context.ValidateInstanceType(typeof(TInstance));
             this.context = context;
             this.instance = instance;
             context.Update(this);

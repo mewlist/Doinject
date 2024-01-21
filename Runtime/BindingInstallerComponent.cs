@@ -8,10 +8,10 @@ namespace Doinject
         [field: SerializeField]
         protected List<BindingInstallerScriptableObject> InstallerScriptableObjects { get; set; }
 
-        public virtual void Install(DIContainer container)
+        public virtual void Install(DIContainer container, IContextArg contextArg)
         {
             foreach (var bindingScriptableObjectInstaller in InstallerScriptableObjects)
-                bindingScriptableObjectInstaller.Install(container);
+                bindingScriptableObjectInstaller.Install(container, contextArg);
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Doinject
     public class InstanceResolver<T> : IInternalResolver
     {
         private T Instance { get; set; }
-        private bool Injected { get; set; }
+        public bool Injected { get; set; }
         public string Name => $"{GetType().Name}<{typeof(T).Name}>";
 
 

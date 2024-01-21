@@ -4,7 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Doinject/Installers/#SCRIPTNAME#", fileName = "#SCRIPTNAME#", order = 0)]
 public class #SCRIPTNAME# : BindingInstallerScriptableObject
 {
-    public override void Install(DIContainer container)
+    public override void Install(DIContainer container, IContextArg contextArg)
     {
         // Bind your dependencies here
     }

@@ -146,6 +146,9 @@ DI Context Tree を確認すると、親子関係を持ったシーンコンテ�
 
 次にゲームオブジェクトコンテクストを子のコンテクストとして動作させてみましょう。
 
+### シーンに配置する場合
+
+
 エントリポイントとなるシーンに以下のようにゲームオブジェクトを配置します。
 ![GameObjectContext](../images/GameObjectContextTree.png)
 
@@ -163,6 +166,33 @@ DI Context Tree を確認すると、親子関係を持ったシーンコンテ�
 
 シーンコンテクストの子として、ゲームオブジェクトコンテクストが生成されていることが確認できます。
 また、ゲームオブジェクトコンテクスト内に配置したインストーラの定義に従ったバインディングが行われていることも確認できます。
+
+### 動的に生成する場合
+
+以下のように、コンテクストが初期化されたあとに、ゲームオブジェクトコンテクストが設定されたプレハブをロードします。
+
+```csharp
+
+[SerializeField] GameObject gameObjectContextPrefab;
+
+public class SomeComponent : MonoBehaviour, IInjectableComponent
+IContext context;
+
+[Inject]
+public void Construct(IContext context)
+{
+    this.context = context;
+}
+
+// OnInjected method is implicitly called after all dependencies are injected if defined.
+public void OnInjected()
+{
+    context.GameObjectContextLoader.LoadAsync(gameObjectContextPrefab, gameObjectContextPrefab);
+}
+```
+
+```GameObject.Instantiate()``` で生成しても良いですが、マルチシーン運用時には呼び出したシーンにインスタンスが生成されない場合があります。
+そのため、GameObjectContextLoader を経由して生成することを推奨します。
 
 ### ゲームオブジェクトコンテクストのライフサイクル
 
@@ -271,3 +301,74 @@ public void LoadNextScene()
 > [!IMPORTANT]
 > Doinject では、プロジェクト全体を表現するコンテクスト空間は今のところ予定していません。
 > 現時点ではマルチシーンによるコンテクストの親子関係を利用した設計を推奨しています。
+
+
+## コンテクストの生成時に引数を渡す
+
+コンテクストを生成する際に、コンテクストに対して引数を渡すことができます。
+引数は、コンテクストのインストーラーに渡され、インストールする機能を切り替えたりする場合に有用です。
+
+Unity のシーンは、引数を与えて挙動を切り替えるといったことができないため、工夫が必要ですが、
+コンテクスト引数を使うことによって、シーンを切り替える際に、シーンに対して引数を渡すといった使い方ができます。
+
+### 引数の渡し方
+
+```SceneContextLoader``` もしくは、```GameObjectContextLoader``` の ```LoadAsync()```　メソッドの第二引数に、
+```IContextArg``` を継承した型を渡すことで、コンテクストに対して引数を渡すことができます。
+
+```csharp
+public class SomeContextArg : IContextArg
+{
+    public string SomeValue { get; set; }
+}
+
+// シーンコンテクストを生成時に引数を渡す
+public class SomeLoader : MonoBehaviour, IInjectableComponent
+{
+    [SerializeField] SceneAssetReference nextScene;
+
+    SceneContextLoader sceneContextLoader;
+    
+    [Inject]
+    public void Construct(SceneContextLoader sceneContextLoader)
+    {
+        this.sceneContextLoader = sceneContextLoader;
+    }
+    
+    public void LoadScene()
+    {
+        var arg = new SomeContextArg { SomeValue = "Hello" };
+        await sceneContextLoader.LoadAsync(nextScene, active: true, arg);
+    }
+}
+```
+
+### 引数の受け取り方
+
+ロードされるコンテクストに配置されたインストーラーの ```Install()``` メソッドの第二引数に、```IContextArg``` が渡されます。
+
+```csharp
+
+public class SomeInstaller : BindingInstallerComponent
+{
+    public override void Install(DIContainer container, IContextArg contextArg)
+    {
+        base.Install(container, contextArg);
+        
+        // contextArg に渡された引数を使って、インストール内容を切り替える
+        if (contextArg is SomeContextArg someContextArg)
+        {
+            // someContextArg.SomeValue を使ってインストール内容を切り替える
+            container.Bind<SomeClass>()
+                .Args(someContextArg.SomeValue);
+                
+        }
+        else
+        {
+            container.Bind<SomeClass>()
+                .Args("Default");
+        }
+    }
+}
+
+```

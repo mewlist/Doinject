@@ -259,6 +259,11 @@ namespace Doinject
 
         public async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
+            if (Resolvers.TryGetValue(new TargetTypeInfo(typeof(T)), out var resolver))
+            {
+                if (resolver is InstanceResolver<T> instanceResolver)
+                    instanceResolver.Injected = true;
+            }
             var targetType = target.GetType();
             var methods = targetType.GetMethods();
             foreach (var methodInfo in methods.Reverse())

@@ -2,9 +2,9 @@ using Doinject;
 
 public class #SCRIPTNAME# : BindingInstallerComponent
 {
-    public override void Install(DIContainer container)
+    public override void Install(DIContainer container, IContextArg contextArg)
     {
-        base.Install(container);
+        base.Install(container, contextArg);
         // Bind your dependencies here
     }
 }

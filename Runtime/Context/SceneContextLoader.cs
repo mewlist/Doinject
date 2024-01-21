@@ -38,18 +38,18 @@ namespace Doinject.Context
             SceneContext = sceneContext;
         }
 
-        public async Task<SceneContext> LoadAsync(SceneReference sceneReference, bool active)
+        public async Task<SceneContext> LoadAsync(SceneReference sceneReference, bool active, IContextArg arg = null)
         {
             return await LoadAsync(new UnifiedScene { SceneReference = sceneReference }, active);
         }
 
 #if USE_DI_ADDRESSABLES
-        public async Task<SceneContext> LoadAsync(SceneAssetReference sceneAssetReference, bool active)
+        public async Task<SceneContext> LoadAsync(SceneAssetReference sceneAssetReference, bool active, IContextArg arg = null)
         {
             return await LoadAsync(new UnifiedScene { SceneAssetReference = sceneAssetReference }, active);
         }
 #endif
-        public async ValueTask<SceneContext> LoadAsync(UnifiedScene unifiedScene, bool active)
+        public async ValueTask<SceneContext> LoadAsync(UnifiedScene unifiedScene, bool active, IContextArg arg = null)
         {
             if (Disposed) return null;
             if (!unifiedScene.IsValid)
@@ -57,12 +57,13 @@ namespace Doinject.Context
             var sceneContext = default(SceneContext);
             await TaskQueue.EnqueueAsync(async ct =>
             {
-                sceneContext = await LoadAsyncInternal(unifiedScene, active, ct);
+                sceneContext = await LoadAsyncInternal(unifiedScene, active, arg, ct);
             });
             return sceneContext;
         }
 
-        private async ValueTask<SceneContext> LoadAsyncInternal(UnifiedScene unifiedScene, bool active, CancellationToken cancellationToken = default)
+        private async ValueTask<SceneContext> LoadAsyncInternal(UnifiedScene unifiedScene, bool active,
+            IContextArg arg, CancellationToken cancellationToken = default)
         {
             var scene = await SceneLoader.LoadAsync(unifiedScene, cancellationToken);
             if (!scene.IsValid()) return null;
@@ -72,6 +73,7 @@ namespace Doinject.Context
             if (entryPoint) return null;
 
             var sceneContext = UnityObjectHelper.InstantiateComponentInSceneRoot<SceneContext>(scene);
+            sceneContext.SetArgs(arg);
             sceneContext.transform.SetSiblingIndex(0);
             ChildSceneContexts.Add(sceneContext);
             await sceneContext.Initialize(scene, parentContext: SceneContext, sceneContextLoader: this);

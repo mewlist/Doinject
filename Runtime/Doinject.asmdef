@@ -2,6 +2,8 @@
     "name": "Doinject",
     "rootNamespace": "Doinject",
     "references": [
+        "GUID:84651a3751eca9349aac36a66bba901b",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
         "GUID:f610cb163d12544488a6127c7f91f4c6",
         "GUID:adf0022e8cf2a164fb451e35e1458e78"
     ],
@@ -16,7 +18,7 @@
         {
             "name": "com.unity.addressables",
             "expression": "",
-            "define": "USE_MEW_CORE_ASSETS"
+            "define": "USE_DI_ADDRESSABLES"
         }
     ],
     "noEngineReferences": false
