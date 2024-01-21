@@ -2,7 +2,7 @@
 
 namespace Doinject
 {
-    public class InstanceResolver<T> : IInternalResolver
+    public class InstanceResolver<T> : IInternalResolver, IInstanceResolver
     {
         private T Instance { get; set; }
         public bool Injected { get; set; }

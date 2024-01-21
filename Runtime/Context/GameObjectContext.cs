@@ -101,9 +101,7 @@ namespace Doinject.Context
         {
             var targets = GetComponentsUnderContext<IInjectableComponent>();
             await Task.WhenAll(targets.Select(x
-                => !Context.Container.HasBinding(x.GetType())
-                    ? Context.Container.InjectIntoAsync(x).AsTask()
-                    : Task.CompletedTask));
+                => Context.Container.InjectIntoAsync(x).AsTask()));
         }
 
         private T[] GetComponentsUnderContext<T>()

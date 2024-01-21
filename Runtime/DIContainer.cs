@@ -259,12 +259,19 @@ namespace Doinject
 
         public async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
-            if (Resolvers.TryGetValue(new TargetTypeInfo(typeof(T)), out var resolver))
+            var targetType = target.GetType();
+            var resolverType = targetType;
+
+            // If target in InstanceResolver try to set Injected flag
+            if (targetType == typeof(IInjectableComponent))
+                resolverType = target.GetType();
+
+            if (Resolvers.TryGetValue(new TargetTypeInfo(resolverType), out var resolver))
             {
-                if (resolver is InstanceResolver<T> instanceResolver)
+                if (resolver is IInstanceResolver instanceResolver)
                     instanceResolver.Injected = true;
             }
-            var targetType = target.GetType();
+
             var methods = targetType.GetMethods();
             foreach (var methodInfo in methods.Reverse())
             {
