@@ -10,15 +10,21 @@ namespace Doinject.Context
 {
     public class GameObjectContextLoader : MonoBehaviour, IAsyncDisposable
     {
+        private IContext Context { get; set; }
         private List<GameObjectContext> ChildContexts { get; } = new();
 
-        public async ValueTask<T> LoadAsync<T>(IContext parentContext, T gameObjectContextPrefab, IContextArg arg = null)
+        public void SetContext(IContext parentContext)
+        {
+            Context = parentContext;
+        }
+
+        public async ValueTask<T> LoadAsync<T>(T gameObjectContextPrefab, IContextArg arg = null)
             where T: GameObjectContext
         {
             var gameObjectContext = Instantiate(gameObjectContextPrefab);
             gameObjectContext.SetArgs(arg);
             using var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
-            SceneManager.MoveGameObjectsToScene(instanceIds, parentContext.Scene);
+            SceneManager.MoveGameObjectsToScene(instanceIds, Context.Scene);
             ChildContexts.Add(gameObjectContext);
             return gameObjectContext;
         }

@@ -37,6 +37,7 @@ namespace Doinject.Context
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
+            GameObjectContextLoader.SetContext(this);
             SceneContextMap[scene] = this;
 
             InstallBindings();
