@@ -58,7 +58,7 @@ SceneContext　は、フレームワークにより自動的に生成される�
 DIコンテナにインスタンスを登録して、インジェクションを行ってみましょう。
 インスタンスの登録(バインディングと言います)はインストーラというコンポーネントから行います。
 
-## 注入ポイントについて
+### 注入ポイントについて
 
 DIコンテナに登録された型を、特定のインスタンスへ注入するためには、以下二通りの方法があります
 
@@ -103,11 +103,16 @@ class SomeClass
 }
 ```
 
-### 注入完了コールバック
+## OnInjected() コールバックについて
 
-```OnInjected()``` という名称・引数なし・public なメソッドは、
+```OnInjected()``` というメソッドは(引数なし・public) は、
 インスタンスの注入が完了したタイミングで、自動的に呼び出されます。
-Task, ValueTask の戻り値を持つ非同期関数であっても問題ありません。
+```Task```, ```ValueTask``` の戻り値を持つ非同期関数であっても問題ありません。
+
+特に、MonoBehaviour を継承したコンポーネントの場合、Awake や Start などのライフサイクルメソッドと、
+インジェクションが行われるタイミングが前後する可能性があります。
+```OnInjected()``` は、インジェクションが完了した次のフレームで呼び出されるようになっているため、
+初期化順を安定化させるために使うことができます。
 
 ```csharp
 class SomeClass
@@ -125,7 +130,7 @@ class SomeClass
 }
 ```
 
-### インストーラスクリプトの作成
+## インストーラスクリプトの作成
 
 インストーラは、`Doinject` メニューから作成することができます。Project ビューで右クリックし、
 `Create` > `Doinject` > `Component Binding Installer C# Script` を選択することで、 インストーラスクリプトが作成されます。
@@ -148,7 +153,7 @@ public class CustomComponentBindingInstallerScript : BindingInstallerComponent
 
 また、動作を確認するため、DIコンテナに登録するオブジェクトと注入先のスクリプトを以下のように作成します。
 
-#### プレイヤーオブジェクト
+### プレイヤーオブジェクト
 ```csharp
 using System;
 using UnityEngine;
@@ -164,7 +169,7 @@ public class Player
 }
 ```
 
-#### 注入先スクリプト
+### 注入先スクリプト
 ```csharp
 using Doinject;
 using UnityEngine;
@@ -224,7 +229,7 @@ Player オブジェクトのインスタンスが`InjectTargetScript.Construct()
 また、複数の異なるインストーラーがあっても構いません。
 わかりやすさのため、エントリポイントの下に置くなどルールを決めておくのが良いでしょう。
 
-### 動作確認
+## 動作確認
 
 先程つくった、InjectTargetScript コンポーネントを、シーンに配置しましょう。
 
@@ -248,7 +253,7 @@ Player のコンストラクタに Args で指定した引数が渡り(コンス
 > (injectable as InjectTargetScript).Construct(player)
 > ```
 
-### 動作確認の補足
+### 補足
 
 シーン全体に配置されたオブジェクトは、すべてシーンコンテクストに包まれます。
 * シーンコンテクストは、生成時に、自身のコンテクストに属するインストーラーを探し、それらの定義に従ってバインディングを行います。
