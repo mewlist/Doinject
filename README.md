@@ -6,18 +6,19 @@ Asynchronous DI Container for Unity
 ![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
 [![](https://img.shields.io/badge/license-MIT-blue)](https://github.com/mewlist/MewAssets/blob/main/LICENSE)
 
+* [日本語Readmeはこちら](https://github.com/mewlist/Doinject/blob/main/README_ja.md)
 
-English document is not available yet.
+## Documentation
 
-## ドキュメント
+* [日本語ドキュメント](https://mewlist.github.io/Doinject/docs/introduction.html)
+* English document is not available yet.
 
-[ドキュメント](https://mewlist.github.io/Doinject/docs/introduction.html)
+## Installation
 
-## インストール
+### Install via Unity Package Manager
 
-### Unity Package Manager でインストール
-
-以下の順にパッケージをインストールしてください。
+Install via Unity Package Manager
+Please install the packages in the following order:
 
 ```
 git@github.com:mewlist/MewCore.git
@@ -27,36 +28,60 @@ git@github.com:mewlist/MewCore.git
 git@github.com:mewlist/Doinject.git
 ```
 
-# Doinject について
+# About Doinject
 
-Doinject は、Unity 向けの非同期 DI(Dependency Injection) フレームワークです。
+Doinject is an asynchronous DI (Dependency Injection) framework for Unity.
 
-非同期DIコンテナというコンセプトが起点となっています。
-残念なお知らせですが、Unity 2022 以前のバージョンはサポートしません。
+The concept of asynchronous DI containers is the starting point.
+Unfortunately, versions prior to Unity 2022 are not supported.
 
-## コンセプト
+## Concepts
 
-### 非同期DIコンテナ
+### Asynchronous DI Containers
 
-非同期なインスタンスの生成と解放をフレームワーク側でサポートします。
-これにより、Addressables Asset Systems を通したインスタンスも扱うことができます。
-また、カスタムファクトリを自分で作れば、時間のかかるインスタンスの生成も DIコンテナに任せてしまうことができます。
+The framework supports the creation and release of asynchronous instances.
+This allows handling instances through the Addressables Asset Systems as well.
+Moreover, you can delegate the creation of time-consuming instances to custom factories.
 
-### Unity のライフサイクルと矛盾しないコンテクスト空間
+### Context Space Consistent with Unity's Lifecycle
 
-Unity のライフサイクルと矛盾しない形でコンテクスト空間を定義するように設計されています。
-シーンを閉じれば、シーンに紐づいたコンテクストを閉じ、そのコンテクスト空間で作成されたインスタンスが消え、
-コンテクストを持つゲームオブジェクトを Destroy すれば、同様にコンテクストを閉じます。
+Designed to define context spaces in a way that does not conflict with Unity's lifecycle.
+When a scene is closed, the context associated with that scene is closed, the instances created in that context space disappear, and
+destroying a GameObject with context similarly closes the context.
+Context spaces are automatically structured by the framework, and parent-child relationships are formed when multiple contexts are loaded.
 
-コンテクスト空間はフレームワークによって自動的に構成され、複数のコンテクストがロードされた場合には、親子関係を作ります。
 
-### Addressable Asset System との連携
+### Collaboration with the Addressable Asset System
 
-Addressable Asset System のインスタンスも扱うことができ、ロードハンドルの解放を自動化することができます。
-Addressables のリソース管理は、独自のリソースマネジメントシステムを作ったり、慎重な実装が必要となることが多いと思いますが、
-Doinject を使うと、Addressables のロード・解放を勝手にやってくれます。
+Instances from the Addressable Asset System can also be handled, and the release of load handles can be automated.
+Resource management in Addressables requires careful implementation, such as creating your own resource management system.
+However, using Doinject automates the loading and release of Addressables.
 
-### 平易な記述
+### Simple coding
 
-ファクトリパターン、(コンテクストに閉じた)シングルトンパターン、サービスロケーターパターンの置き換えを、平易な記述で実現することができます。
-また、カスタムファクトリやカスタムリゾルバを作ることで、より複雑なインスタンス生成シナリオに対応することができます。
+You can achieve replacements for the factory pattern, (context-closed) singleton pattern, and service locator pattern with simple descriptions.
+Additionally, by creating custom factories or custom resolvers, you can handle more complex instance creation scenarios.
+
+
+## Examples code of Binding
+
+| Code                                                                                | Instance                                                                                                                                                                      | instance type |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| ```container.Bind<SomeClass>();```                                                  | ```new SomeClass()```                                                                                                                                                                 | cached        |
+| ```container.Bind<SomeClass>().AsSingleton();```　                                   | ```new SomeClass()```                                                                                                                                                                 | singleton     |
+| ```container.Bind<SomeClass>().AsTransient();```　                                   | ```new SomeClass()```                                                                                                                                                                 | transient     |
+| ```container.Bind<SomeClass>().Args(123,"ABC");```　                                 | ```new SomeClass(123, "abc")```                                                                                                                                                       | cached        |
+| ```container.Bind<ISomeInterface>().To<SomeClass>();```　                            | ```new SomeClass() as ISomeInterface```                                                                                                                                               | cached        |
+| ```container.Bind<ISomeInterface, SomeClass>();```　                                 | ```new SomeClass() as ISomeInterface```                                                                                                                                               | cached        |
+| ```container.Bind<SomeComponent>();```                                              | ```new GameObject().AddComponent<SomeComponent>()```                                                                                                                                  | cached        |
+| ```container.Bind<SomeClass>().FromInstance(instance);```                           | ```instance```                                                                                                                                                                        | instance      |
+| ```container.BindInstance(instance);```                                             | ```instance```                                                                                                                                                                        | instance      |
+| ```container.BindPrefab<SomeComponent>(somePrefab);```                              | ```Instantiate(somePrefab).GetComponent<SomeComponent>()```                                                                                                                           | cached        |
+| ```container.BindAssetReference<SomeAddressalbesObject>(assetReference);```    | ```var handle = Addressables.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/>```var prefab = await handle.Task```                                                             | instance      |
+| ```container.BindPrefabAssetReference<SomeComponent>(prefabAssetReference);``` | ```var handle = Addressables.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/>```var prefab = await handle.Task```<br/>```Instantiate(prefab).GetComponent<SomeComponent>()``` | cached        |
+| ```container.Bind<SomeClass>().AsFactory();```                                      | ```new Factory<SomeClass>(new TypeResolver<SomeClass>()) as IFactory<SomeClass>```                                                                                                    | factory       |
+| ```container.Bind<SomeComponent>().AsFactory();```                                  | ```new Factory<SomeComponent>(new MonoBehaviourResolver())) as IFactory<SomeComponent>```                                                                                             | factory       |
+
+
+
+
