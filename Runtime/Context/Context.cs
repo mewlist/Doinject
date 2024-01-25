@@ -25,11 +25,11 @@ namespace Doinject.Context
 
         public Context(GameObject gameObjectInstance, Context parentContext)
         {
-            Scene = parentContext.Scene;
+            Scene = parentContext?.Scene ?? gameObjectInstance.scene;
             SceneName = Scene.name;
             GameObjectInstance = gameObjectInstance;
             Parent = parentContext;
-            Container = new DIContainer(Parent.Container, Scene);
+            Container = new DIContainer(Parent?.Container, Scene);
             ContextTracker.Instance.Add(this);
         }
 
