@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
@@ -24,7 +23,7 @@ namespace Doinject.Context
             var gameObjectContext = Instantiate(gameObjectContextPrefab);
             gameObjectContext.SetArgs(arg);
             using var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
-            SceneManager.MoveGameObjectsToScene(instanceIds, Context.Scene);
+            SceneManager.MoveGameObjectsToScene(instanceIds, Context?.Scene ?? SceneManager.GetActiveScene());
             ChildContexts.Add(gameObjectContext);
             return gameObjectContext;
         }

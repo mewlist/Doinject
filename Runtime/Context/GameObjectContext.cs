@@ -8,7 +8,7 @@ namespace Doinject.Context
 {
     public class GameObjectContext : MonoBehaviour, IInjectableComponent, IContext, IGameObjectContextRoot
     {
-        public Scene Scene { get; private set; }
+        public Scene Scene => Context.Scene;
         public GameObject ContextObject => gameObject;
         public Context Context { get; private set; }
         public SceneContextLoader OwnerSceneContextLoader => ParentContext.SceneContextLoader;
@@ -17,27 +17,28 @@ namespace Doinject.Context
         public IContextArg Arg { get; private set; } = new NullContextArg();
 
         private IContext ParentContext { get; set; }
-        private bool Initialized { get; set; }
+        private bool Initializing { get; set; }
+        public bool Initialized { get; private set; }
 
-        public async Task Initialize()
+        private async Task Initialize()
         {
-            if (Initialized) return;
+            if (Initializing || Initialized) return;
+            Initializing = true;
 
             ParentContext = FindParentContext();
-            if (ParentContext is null) return;
-
-            Scene = ParentContext.Scene;
-            Context = new Context(gameObject, ParentContext.Context);
+            Context = new Context(gameObject, ParentContext?.Context);
             Context.Container.Bind<IContextArg>().FromInstance(Arg);
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
-            Initialized = true;
 
             await InstallBindings();
             await Context.Container.GenerateResolvers();
             await InjectIntoUnderContextObjects();
+
+            Initializing = false;
+            Initialized = true;
         }
 
         public void SetArgs(IContextArg arg)
@@ -47,7 +48,7 @@ namespace Doinject.Context
 
         private async void Start()
         {
-            while (!Initialized)
+            while (!Initializing && !Initialized)
             {
                 await TaskHelper.NextFrame();
                 if (this) await Initialize();
