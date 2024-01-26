@@ -33,6 +33,8 @@ namespace Doinject.Context
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
 
+            ParentContext?.GameObjectContextLoader.Register(this);
+
             await InstallBindings();
             await Context.Container.GenerateResolvers();
             await InjectIntoUnderContextObjects();
@@ -66,6 +68,9 @@ namespace Doinject.Context
             if (SceneContext.TryGetSceneContext(gameObject.scene, out var sceneContext))
                 return sceneContext;
 
+            if (ProjectContext.Instance)
+                return ProjectContext.Instance;
+
             return null;
         }
 
@@ -83,6 +88,7 @@ namespace Doinject.Context
             if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
             await Context.DisposeAsync();
+            ParentContext?.GameObjectContextLoader.Unregister(this);
             if (gameObject) Destroy(gameObject);
         }
 
@@ -93,9 +99,7 @@ namespace Doinject.Context
             Context.Container.BindFromInstance(SceneContextLoader);
             Context.Container.BindFromInstance(GameObjectContextLoader);
             var targets = GetComponentsUnderContext<IBindingInstaller>();
-            foreach (var component in targets)
-                if (component is IBindingInstaller installer)
-                    installer.Install(Context.Container, Arg);
+            Context.Install(targets, Arg);
         }
 
         private async Task InjectIntoUnderContextObjects()

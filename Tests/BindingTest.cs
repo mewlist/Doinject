@@ -194,7 +194,7 @@ namespace Doinject.Tests
         }
 
         [Test]
-        public async Task InterfaceCanNotInstantiateTest()
+        public void InterfaceCanNotInstantiateTest()
         {
             Assert.Throws<Exception>(() =>
             {
@@ -211,7 +211,7 @@ namespace Doinject.Tests
                     .AsSingleton();
                 await container.ResolveAsync<InjectableObject>();
             }
-            catch (FailedToCacheException e)
+            catch (FailedToCacheException)
             {
                 Assert.Pass();
             }

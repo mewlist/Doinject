@@ -76,7 +76,7 @@ namespace Doinject.Context
             sceneContext.SetArgs(arg);
             sceneContext.transform.SetSiblingIndex(0);
             ChildSceneContexts.Add(sceneContext);
-            await sceneContext.Initialize(scene, parentContext: SceneContext, sceneContextLoader: this);
+            await sceneContext.Initialize(scene, parentContext: SceneContext);
             return sceneContext;
         }
 
