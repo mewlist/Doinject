@@ -118,7 +118,7 @@ namespace Doinject.Tests
         }
 
         [Test]
-        public async Task AmbiguousArgsTest()
+        public void AmbiguousArgsTest()
         {
             Assert.Throws<Exception>(() =>
             {

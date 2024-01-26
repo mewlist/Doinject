@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,13 +12,19 @@ namespace Doinject.Context
         public Scene Scene { get; }
         public GameObject GameObjectInstance { get; }
         public DIContainer Container { get; }
-        public Context Parent { get; set; }
-        public string SceneName { get; }
+        public Context Parent { get; }
+
+        public Context()
+        {
+            Scene = default;
+            Parent = null;
+            Container = new DIContainer(Parent?.Container, Scene);
+            ContextTracker.Instance.Add(this);
+        }
 
         public Context(Scene scene, Context parentContext)
         {
             Scene = scene;
-            SceneName = Scene.name;
             Parent = parentContext;
             Container = new DIContainer(Parent?.Container, Scene);
             ContextTracker.Instance.Add(this);
@@ -26,11 +33,24 @@ namespace Doinject.Context
         public Context(GameObject gameObjectInstance, Context parentContext)
         {
             Scene = parentContext?.Scene ?? gameObjectInstance.scene;
-            SceneName = Scene.name;
             GameObjectInstance = gameObjectInstance;
             Parent = parentContext;
             Container = new DIContainer(Parent?.Container, Scene);
             ContextTracker.Instance.Add(this);
+        }
+
+
+        public void Install(IEnumerable<IBindingInstaller> targets, IContextArg contextArg)
+        {
+            foreach (var component in targets)
+                component.Install(Container, contextArg);
+        }
+
+        public void InstallScriptableObjects(
+            List<BindingInstallerScriptableObject> targets)
+        {
+            foreach (var bindingScriptableObjectInstaller in targets)
+                bindingScriptableObjectInstaller.Install(Container, new NullContextArg());
         }
 
         public async ValueTask DisposeAsync()
@@ -43,8 +63,10 @@ namespace Doinject.Context
         {
             if (GameObjectInstance)
                 return $"GameObjectContext: {GameObjectInstance.name}";
+            else if (Scene.IsValid())
+                return $"SceneContext: {Scene.name}";
             else
-                return $"SceneContext: {SceneName}";
+                return $"ProjectContext";
         }
     }
 }

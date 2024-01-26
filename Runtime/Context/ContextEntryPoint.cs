@@ -32,7 +32,7 @@ namespace Doinject.Context
             var scene = gameObject.scene;
             SceneContext = gameObject.AddComponent<SceneContext>();
             SceneContext.transform.SetSiblingIndex(0);
-            await SceneContext.Initialize(scene, parentContext: null, sceneContextLoader: null);
+            await SceneContext.Initialize(scene, parentContext: ProjectContext.Instance);
         }
 
 

@@ -26,14 +26,13 @@ namespace Doinject.Context
 
         public Scene Scene => Context.Scene;
 
-
-        public async Task Initialize(Scene scene, IContext parentContext, SceneContextLoader sceneContextLoader)
+        public async Task Initialize(Scene scene, IContext parentContext)
         {
             Context = new Context(scene, parentContext?.Context);
             Context.Container.Bind<IContextArg>().FromInstance(Arg);
             if (GetComponentsUnderContext<SceneContext>().Any(x => x != this))
                 throw new InvalidOperationException("Do not place SceneContext statically in scene.");
-            OwnerSceneContextLoader = sceneContextLoader;
+            OwnerSceneContextLoader = parentContext?.SceneContextLoader;
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
@@ -66,8 +65,7 @@ namespace Doinject.Context
             Context.Container.BindFromInstance(SceneContextLoader);
             Context.Container.BindFromInstance(GameObjectContextLoader);
             var targets = GetComponentsUnderContext<IBindingInstaller>();
-            foreach (var component in targets)
-                component.Install(Context.Container, Arg);
+            Context.Install(targets, Arg);
         }
 
         private async Task InjectIntoUnderContextObjects()

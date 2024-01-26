@@ -68,7 +68,7 @@ namespace Doinject.Tests
         }
 
         [Test]
-        public async Task BindingNotFoundTest()
+        public void BindingNotFoundTest()
         {
             container.BindTransient<MethodInjectionTestClass>();
             Assert.IsTrue(container.HasBinding<MethodInjectionTestClass>());
