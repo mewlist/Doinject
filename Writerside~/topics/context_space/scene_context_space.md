@@ -34,12 +34,12 @@ public class LoadChildScene : MonoBehaviour, IInjectableComponent
 ```
 
 このコンポーネントを、シーンに配置し、インスペクタより ```childScene``` にシーンを指定することで、
-そのシーンをロードすることができます。
+そのシーンをロードできます。
 
 > ### UnifiedScene 型について
 > 
 > `SceneContextLoader.LoadAsync` の第一引数には、`UnifiedScene` 型を指定します。
-> `UnifiedScene` は、BuildSettings を経由したシーンと、Addressalbes を経由したシーンの
+> `UnifiedScene` は、BuildSettings を経由したシーンと、Addressables を経由したシーンの
 > 複数のシーン指定方法を透過的に扱うために用意されています。
 > 
 > SerializeField　に UnifiedScene を指定すると、インスペクタで以下のように表示されます。

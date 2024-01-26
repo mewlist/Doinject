@@ -2,7 +2,7 @@
 
 シーンを切り替えるには、ロードしたシーンコンテクストをアンロードしてから、新しいシーンをロードします。
 子のコンテクストとしてロードしたシーンは ```SceneContextLoader.UnloadAllScenesAsync()``` を呼び出すことで、
-すべてアンロードすることができます。
+すべてアンロードできます。
 
 ```C#
 await sceneContextLoader.UnloadAllAsync();

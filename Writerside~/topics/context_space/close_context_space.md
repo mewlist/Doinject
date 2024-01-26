@@ -25,7 +25,7 @@ public async Task DisposeSceneContext()
 
 ## シーンコンテクスト空間: SceneContextLoader.UnloadAsync() を呼び出す
 
-シーンコンテクストの場合は、シーンをロードした際に、SceneContext を保持しておくことで、そのコンテクストを閉じることができます。
+シーンコンテクストの場合は、シーンをロードした際に、SceneContext を保持しておくことで、そのコンテクストを閉じられます。
 
 ```C#
 var sceneContext = await sceneContextLoader.LoadAsync(firstScene, active: true);

@@ -3,7 +3,7 @@
 DIコンテナに解決してもらう型やその解決方法を指定するためには、インストーラーを利用します。
 
 インストーラーは、コンテクストとなるシーン、もしくは、ゲームオブジェクトコンテクストにコンポーネントとして配置することで、
-そこに記述されたバインディングを DI コンテナに登録することができます。 また、ScriptableObject としてインストーラーを作成することもできます。
+そこに記述されたバインディングを DI コンテナに登録できます。 また、ScriptableObject としてインストーラーを作成することもできます。
 
 ## コンポーネントとしてインストーラーを作る
 
@@ -36,7 +36,7 @@ public class CustomComponentBindingInstallerScript : BindingInstallerComponent
 
 ### インストーラーコンポーネントをインストールする
 
-インストーラーコンポーネントは、コンテクストエントリポイントの存在するシーンや、シーンローダーを経由してロードされるシーンにあらかじめ配置しておくか、
+インストーラーコンポーネントは、コンテクストエントリポイントが存在するシーンや、シーンローダーを経由してロードされるシーンにあらかじめ配置しておくか、
 ゲームオブジェクトコンテクストの子として配置することで、コンテクストの開始時に自動的にインストールされます。
 
 
@@ -74,7 +74,7 @@ public class CustomBindingInstallerScriptableObjectScript : BindingInstallerScri
 
 ### ScriptableObjectInstaller をインストールする
 
-インストーラーコンポーネントには、以下のように インストーラーの ScriptableObject を設定することができます。
+インストーラーコンポーネントには、以下のように インストーラーの ScriptableObject を設定できます。
 
 ![InstallScriptableObjectInstaller](InstallScriptableObjectInstaller.png)
 
@@ -85,8 +85,8 @@ ScriptableObject として作成されたインストーラーだけ使用する
 インストーラーコンポーネントを新規に作らず、空のインストーラーを配置するだけで十分かもしれません。
 
 ヒエラルキビューで右クリックをして、```Doinject``` -> ```Create Installer``` を選択することで、
-空のインストーラーコンポーネントを作成することができます。
-ここで作成された空のインストーラーを使っても、ScriptableObject インストーラーを設定することができます。
+空のインストーラーコンポーネントを作成できます。
+ここで作成された空のインストーラーを使っても、ScriptableObject インストーラーを指定できます。
 
 ![CreateEmptyInstaller](CreateEmptyInstaller.png)
 
@@ -96,7 +96,7 @@ ScriptableObject として作成されたインストーラーだけ使用する
 
 インストーラーのインスペクタ内には、```Component Bindings``` という項目があります。
 ここに、シーンに配置されたコンポーネントをドラッグ＆ドロップすることで、インストーラースクリプトを記述することなく、
-そのコンポーネントをバインドすることができます。
+そのコンポーネントをバインドできます。
 
 ![ComponentBindings](ComponentBindings.png)
 
@@ -106,7 +106,7 @@ ScriptableObject として作成されたインストーラーだけ使用する
 インストーラーの実態は、```MonoBehaviour``` もしくは ```ScriptableObject``` ですので、[SerializeField] プロパティを通じて、
 他のオブジェクトを参照することができます。
 
-Unity のオブジェクトを参照することで、それらをバインドすることができ、
+Unity のオブジェクトを参照することで、それらをバインドでき、
 プレハブの指定や、他のスクリプタブルオブジェクトのバインドができるようになっています。
 
 ```AssetReference``` や ```PrefabAssetReference``` を参照すれば ```Addressables``` で管理されたアセットをバインドすることもできます。
