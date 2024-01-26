@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="di"
+                 name="Doinject"
+                 start-page="introduction.md">
+
+    <toc-element topic="introduction.md"/>
+    <toc-element topic="about_di_framework.md"/>
+    <toc-element topic="tutorial.md"/>
+    <toc-element topic="context_space.md">
+        <toc-element topic="context_tree_window.md"/>
+        <toc-element topic="scene_context_space.md"/>
+        <toc-element topic="game_object_context_space.md"/>
+        <toc-element topic="project_context_space.md"/>
+        <toc-element topic="close_context_space.md"/>
+        <toc-element topic="scene_transition.md"/>
+        <toc-element topic="context_arg.md"/>
+    </toc-element>
+    <toc-element topic="installer.md"/>
+    <toc-element topic="bindings.md"/>
+    <toc-element topic="bindings_advanced.md"/>
+    <toc-element topic="troubleshooting.md"/>
+</instance-profile>

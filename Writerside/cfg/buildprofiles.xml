@@ -1,0 +1,20 @@
+<buildprofiles xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd">
+    <variables>
+        <primary-color>aqua</primary-color>
+        <product-web-url>https://github.com/mewlist/Doinject</product-web-url>
+        <download-title>Go to Repository</download-title>
+        <download-page>https://github.com/mewlist/Doinject</download-page>
+        <showDownloadButton>true</showDownloadButton>
+    </variables>
+    <footer>
+        <copyright>mewlist 2024</copyright>
+        <social type="twitter" href="https://twitter.com/mewlist"/>
+        <link href="https://blog.jetbrains.com">Blog</link>
+    </footer>
+    <build-profile instance="di">
+        <variables>
+            <noindex-content>true</noindex-content>
+        </variables>
+    </build-profile>
+</buildprofiles>
