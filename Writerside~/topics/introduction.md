@@ -1,16 +1,16 @@
-# Doinject
+# はじめに
 
-Unity 向け 非同期 DI(Dependency Injection) フレームワーク
+## Doinject とは
 
 ![Logo.svg](Logo.svg)
-
-![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
-![](https://img.shields.io/badge/license-MIT-blue)
 
 Doinject は、Unity 向けの非同期 DI(Dependency Injection) フレームワークです。
 
 非同期DIコンテナというコンセプトが起点となっています。
 残念なお知らせですが、Unity 2022 以前のバージョンはサポートしません。
+
+![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
+![](https://img.shields.io/badge/license-MIT-blue)
 
 ## コンセプト
 

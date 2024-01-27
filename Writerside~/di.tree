@@ -4,8 +4,9 @@
 
 <instance-profile id="di"
                  name="Doinject"
-                 start-page="introduction.md">
+                 start-page="index.topic">
 
+    <toc-element topic="index.topic"/>
     <toc-element topic="introduction.md"/>
     <toc-element topic="about_di_framework.md"/>
     <toc-element topic="tutorial.md"/>

@@ -2,7 +2,7 @@
                xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd">
     <variables>
         <primary-color>aqua</primary-color>
-        <product-web-url>https://github.com/mewlist/Doinject</product-web-url>
+        <product-web-url>https://mewlist.github.io/Doinject</product-web-url>
         <header-logo>../images/Logo_Header.svg</header-logo>
         <download-title>Go to Repository</download-title>
         <download-page>https://github.com/mewlist/Doinject</download-page>
