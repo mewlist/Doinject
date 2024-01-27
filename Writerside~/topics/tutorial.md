@@ -1,32 +1,36 @@
 # Doinject をはじめよう
 
-## インストール
-
-### Unity Package Manager でインストール
+## Unity Package Manager でインストール
 
 Unity Package Manager からインストールすることができます。
 
 ### MewCore のインストール
 
-まず、依存ライブラリとなる、MewCore パッケージをインストールしてください。
-
-1. Unity のメニューから `Window` > `Package Manager` を選択します。
-2. `+` ボタンをクリックし、`Add package from git URL...` を選択します。
-3. 以下を入力し、`Add` をクリックします。
-```
+<procedure id="procedure-install-mewcore">
+<p>まず、依存ライブラリとなる、MewCore パッケージをインストールしてください。</p>
+<step>Unity のメニューから <ui-path>Window > Package Manager</ui-path> を選択します。</step>
+<step><control>+</control> ボタンをクリックし、<control>Add package from git URL...</control> を選択します。</step>
+<step>以下を入力し、<control>Add</control> をクリックします。
+<code-block>
 git@github.com:mewlist/MewCore.git
-```
+</code-block>
+</step>
+</procedure>
 
 ### Doinject のインストール
 
-次に、Doinject パッケージをインストールします。
-
-1. Unity のメニューから `Window` > `Package Manager` を選択します。   
-2. `+` ボタンをクリックし、`Add package from git URL...` を選択します。
-3. 以下を入力し、`Add` をクリックします。
-```
+<procedure id="procedure-install-doinject">
+<p>次に、Doinject パッケージをインストールします。</p>
+<step>Unity のメニューから <ui-path>Window > Package Manager</ui-path> を選択します。</step>
+<step><control>+</control> ボタンをクリックし、<control>Add package from git URL...</control> を選択します。</step>
+<step>以下を入力し、<control>Add</control> をクリックします。
+<code-block>
 git@github.com:mewlist/Doinject.git
-```
+</code-block>
+</step>
+</procedure>
+
+
 
 ## エントリポイントを決める
 
@@ -62,8 +66,8 @@ DIコンテナにインスタンスを登録して、インジェクションを
 
 DIコンテナに登録された型を、特定のインスタンスへ注入するためには、以下二通りの方法があります
 
-* コンストラクタインジェクション
-* メソッドインジェクション
+: * コンストラクタインジェクション
+: * メソッドインジェクション
 
 コンストラクタインジェクションは、DIコンテナを通じてインスタンスを生成する際に自動的に行われます。
 メソッドインジェクションは、[Inject] 属性をつけたメソッドを呼び出すことで行われます。
@@ -206,10 +210,9 @@ Player オブジェクトのインスタンスが`InjectTargetScript.Construct()
     }
 ```
 
+
 `.Bind<Player>()` は、Player クラスをコンテナを通じて提供してもらうための宣言です。
-
 `.Args("Novice Player")` は、Player クラスのコンストラクタにわたす引数となります。
-
 `.AsSingleton()` は、コンテナを通じて提供される Player オブジェクトがシングルトンであることを示します。
 
 バインド記述は、此のように Fluent Interface を通じて行います。
@@ -256,9 +259,9 @@ Player のコンストラクタに Args で指定した引数が渡り(コンス
 ### 補足
 
 シーン全体に配置されたオブジェクトは、すべてシーンコンテクストに包まれます。
-* シーンコンテクストは、生成時に、自身のコンテクストに属するインストーラーを探し、それらの定義に従ってバインディングを行います。
-* すべてのインストーラーのバインディングが完了すると、DIContainer は自身が扱うべき型とインスタンス解決方法を知っている状態となります。
-* その後、シーンコンテクストは、シーン内のすべてのゲームオブジェクトを探索し、IInjectableComponent を実装したコンポーネントを探します。
-* IInjectableComponent を実装したコンポーネントが見つかったら、そのコンポーネントの [Inject] 属性が指定されたメソッドの引数と型が一致するインスタンスを渡すよう呼び出します。
-* シーンコンテクストは、シーンのライフサイクルに合わせて生成され、シーンが破棄されると同時に、コンテナが抱えるインスタンスとともに破棄されます。
+: * シーンコンテクストは、生成時に、自身のコンテクストに属するインストーラーを探し、それらの定義に従ってバインディングを行います。
+: * すべてのインストーラーのバインディングが完了すると、DIContainer は自身が扱うべき型とインスタンス解決方法を知っている状態となります。
+: * その後、シーンコンテクストは、シーン内のすべてのゲームオブジェクトを探索し、IInjectableComponent を実装したコンポーネントを探します。
+: * IInjectableComponent を実装したコンポーネントが見つかったら、そのコンポーネントの [Inject] 属性が指定されたメソッドの引数と型が一致するインスタンスを渡すよう呼び出します。
+: * シーンコンテクストは、シーンのライフサイクルに合わせて生成され、シーンが破棄されると同時に、コンテナが抱えるインスタンスとともに破棄されます。
 

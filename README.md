@@ -1,14 +1,16 @@
 # Doinject
 Asynchronous DI Container for Unity
 
-![Logo.svg](Documentation%7E/images/Logo.svg)
+![Logo.svg](Writerside%7E/images/Logo.svg)
 
 ![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
 [![](https://img.shields.io/badge/license-MIT-blue)](https://github.com/mewlist/MewAssets/blob/main/LICENSE)
 
 * [日本語Readmeはこちら](https://github.com/mewlist/Doinject/blob/main/README_ja.md)
 
-## Documentation
+## Documentation 
+
+[![Build documentation](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml/badge.svg)](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml)
 
 * [日本語ドキュメント](https://mewlist.github.io/Doinject)
 * English document is not available yet.

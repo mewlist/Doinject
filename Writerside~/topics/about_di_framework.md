@@ -59,7 +59,6 @@ class SomeClass
 すっきりしました。 このように、依存するオブジェクトを自分で new するのではなく、外から渡してもらうようにすることを
 Dependency Injection(依存の注入)と言います。
 
-> [!note]
 > コンストラクタでインスタンスを受け取るものを「コンストラクタインジェクション」
 > メソッドを通してインスタンスを受け取るものを「メソッドインジェクション」と言います。
 
@@ -131,13 +130,16 @@ class SomeClass
 
 この変化をクラス図を通して見てみると、以下のようになります。
 
-```mermaid
+{type="narrow" sorted="desc"}
+変更前
+: ```mermaid
 classDiagram
 direction LR
     SomeClass ..|> SomeDependency
 ```
 
-```mermaid
+変更後
+: ```mermaid
 classDiagram
 direction LR
     SomeClass ..|> ISomeDependency
