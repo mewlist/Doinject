@@ -58,6 +58,17 @@ public async Task OnInjected()
 }
 ```
 
+## ```AutoContextLoader``` を使ってシーンをロードする
+
+コンテクスト空間内の任意の場所に、```AutoContextLoader``` コンポーネントを配置することで、
+プレハブ化されたゲームオブジェクトコンテクストをロードできます。
+
+インスペクタの <control>Game Object Context Prefabs</control> にロードしたいプレハブを指定することで、
+```AutoContextLoader```の属するコンテクスト空間がロードされた後、自動的に子コンテクストがロードされます。
+
+![AutoContextLoader.png](AutoContextLoader.png)
+
+
 ## ゲームオブジェクトコンテクストのライフサイクル
 
 このゲームオブジェクトコンテクストをプレハブ化し、再生中のシーンコンテクストにドラッグ＆ドロップすることで、
