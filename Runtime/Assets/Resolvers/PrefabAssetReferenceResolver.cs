@@ -12,14 +12,14 @@ namespace Doinject.Assets
     public class PrefabAssetReferenceResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
     {
         private PrefabAssetReference PrefabAssetReference { get; }
-        public object[] Args { get; }
         private Transform Under { get; }
         private bool WorldPositionStays { get; }
-
         private GameObject PrefabInstance { get; set; }
         private PrefabResolver<T> PrefabResolver { get; set; }
         private AssetReferenceResolver<GameObject> AssetReferenceResolver { get; set; }
+        private object[] Args { get; }
         private TaskQueue TaskQueue { get; } = new();
+
         public CacheStrategy CacheStrategy { get; }
 
         public PrefabAssetReferenceResolver(PrefabAssetReference prefabAssetReference,

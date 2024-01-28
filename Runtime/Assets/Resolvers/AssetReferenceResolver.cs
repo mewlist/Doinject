@@ -7,16 +7,16 @@ using UnityEngine.AddressableAssets;
 
 namespace Doinject.Assets
 {
-    public class AssetReferenceResolver<T> : IInternalResolver<T>
+    public sealed class AssetReferenceResolver<T> : IInternalResolver<T>
         where T: Object
     {
         private TargetTypeInfo TargetType { get; }
         private AssetReference AssetReference { get; }
         private AssetLoader AssetLoader { get; } = new();
         private T Instance { get; set; }
-        public string Name => $"{GetType().Name}<{typeof(T).Name}>";
-
         private TaskQueue TaskQueue { get; } = new();
+
+        public string Name => $"{GetType().Name}<{typeof(T).Name}>";
 
         public AssetReferenceResolver(AssetReference assetReference)
         {

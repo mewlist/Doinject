@@ -10,5 +10,6 @@ namespace Doinject
     }
 
     public interface IInternalResolver<T> : IInternalResolver, IResolver<T>
-    {}
+    {
+    }
 }

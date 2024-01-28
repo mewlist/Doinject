@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 namespace Doinject
 {
-    public class FactoryResolver<T, TResolver, TFactory> : AbstractInternalResolver<TFactory>, IFactoryResolver
+    public sealed class FactoryResolver<T, TResolver, TFactory> : AbstractInternalResolver<TFactory>, IFactoryResolver
         where TFactory : IFactory
         where TResolver : IResolver<T>
     {
-        public TResolver InnerResolver { get; set; }
+        private TResolver InnerResolver { get; }
         public TargetTypeInfo FactoryType { get; }
 
         public FactoryResolver(TResolver innerResolver, InstanceBag instanceBag)

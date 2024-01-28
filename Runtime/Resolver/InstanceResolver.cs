@@ -2,12 +2,12 @@
 
 namespace Doinject
 {
-    public class InstanceResolver<T> : IInternalResolver, IInstanceResolver
+    public sealed class InstanceResolver<T> : IInternalResolver, IResolver<T>, IInstanceResolver
     {
         private T Instance { get; set; }
+
         public bool Injected { get; set; }
         public string Name => $"{GetType().Name}<{typeof(T).Name}>";
-
 
         public InstanceResolver(T instance)
         {

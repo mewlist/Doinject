@@ -9,7 +9,7 @@ namespace Doinject.Context
     public class ContextEntryPoint : MonoBehaviour
     {
         private TaskQueue TaskQueue { get; } = new();
-        public SceneContext SceneContext { get; set; }
+        private SceneContext SceneContext { get; set; }
 
         private async void Awake()
         {

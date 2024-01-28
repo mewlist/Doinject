@@ -2,13 +2,14 @@ using System.Threading.Tasks;
 
 namespace Doinject
 {
-    public class FromResolverResolver<T, TResolver> : IInternalResolver<T>
+    public sealed class FromResolverResolver<T, TResolver> : IInternalResolver<T>
         where TResolver : IResolver<T>, new()
     {
-        public string Name => $"{GetType().Name}<{typeof(T).Name}>";
         private TResolver Resolver { get; }
         private object[] Args { get; }
         private bool Injected { get; set; }
+
+        public string Name => $"{GetType().Name}<{typeof(T).Name}>";
 
         public FromResolverResolver(object[] args)
         {

@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Doinject.Context
 {
-    public static class SceneExtensions
+    internal static class SceneExtensions
     {
         public static T FindFirstObjectByType<T>(this Scene scene) where T : Object
         {
