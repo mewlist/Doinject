@@ -5,6 +5,17 @@
 * ```ContextEntryPoint``` コンポーネントをシーンに配置した場合、そのシーンはコンテクストに包まれます。
 * ```SceneContextLoader``` を経由して別のシーンをロードすると、そのシーンは、現在のコンテクストの子として新たなコンテクスト空間を生成します。
 
+## ```AutoContextLoader``` を使ってシーンをロードする
+
+コンテクスト空間内の任意の場所に、```AutoContextLoader``` コンポーネントを配置することで、
+そのコンテクスト空間の子となるシーンコンテクストやゲームオブジェクトコンテクストをロードできます。
+
+インスペクタの <control>Scene Contexts</control> にロードしたいシーンを指定することで、
+```AutoContextLoader```の属するコンテクスト空間がロードされた後、自動的に子コンテクストがロードされます。
+
+![AutoContextLoader.png](AutoContextLoader.png)
+
+
 ## ```SceneContextLoader``` を使ってシーンをロードする
 
 各コンテクスト空間に属する DIコンテナには、必ず `SceneContextLoader` が提供されます。
