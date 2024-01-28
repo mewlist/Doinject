@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 
 namespace Doinject
 {
-    public class TypeResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
+    public sealed class TypeResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
         where TInstance : T
     {
-        public object[] Args { get; }
+        private object[] Args { get; }
+
         public CacheStrategy CacheStrategy { get; }
 
         public TypeResolver(object[] args, CacheStrategy cacheStrategy, InstanceBag instanceBag)
@@ -24,6 +25,9 @@ namespace Doinject
                 case CacheStrategy.Singleton: case CacheStrategy.Cached:
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
+                    break;
+                case CacheStrategy.Transient:
+                default:
                     break;
             }
 

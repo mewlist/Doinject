@@ -11,7 +11,7 @@ namespace Doinject
             Binder = binder;
         }
 
-        public IInternalResolver ToResolver(InstanceBag instanceBag)
+        internal IInternalResolver ToResolver(InstanceBag instanceBag)
         {
             return Binder.ToResolver(instanceBag);
         }

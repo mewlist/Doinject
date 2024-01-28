@@ -3,9 +3,9 @@ using System.Linq;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Doinject.Context
+namespace Doinject
 {
-    public static class SceneExtensions
+    internal static class SceneExtensions
     {
         public static T FindFirstObjectByType<T>(this Scene scene) where T : Object
         {

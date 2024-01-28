@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Doinject.Context;
 using Mew.Core.Assets;
 using Mew.Core.TaskHelpers;
 using NUnit.Framework;

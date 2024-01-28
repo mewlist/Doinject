@@ -9,6 +9,7 @@ namespace Doinject
         public Type TargetType { get; }
         public object Instance { get; }
         public bool IsValid => TargetType is not null && Instance is not null;
+
         public ScopedInstance(object instance)
         {
             TargetType = instance.GetType();

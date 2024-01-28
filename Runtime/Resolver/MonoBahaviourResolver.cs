@@ -5,15 +5,16 @@ using UnityEngine.Assertions;
 
 namespace Doinject
 {
-    public class MonoBahaviourResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
+    public sealed class MonoBahaviourResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
         where TInstance : T
     {
-        public TargetTypeInfo InstanceType { get; }
-        public object[] Args { get; }
+        private TargetTypeInfo InstanceType { get; }
+        private object[] Args { get; }
+        private GameObject On { get; }
+        private Transform Under { get; }
+        private bool WorldPositionStays { get; }
+
         public CacheStrategy CacheStrategy { get; }
-        public GameObject On { get; }
-        public Transform Under { get; }
-        public bool WorldPositionStays { get; }
 
         public MonoBahaviourResolver(object[] args, CacheStrategy cacheStrategy, InstanceBag instanceBag, GameObject on)
             : base(instanceBag)

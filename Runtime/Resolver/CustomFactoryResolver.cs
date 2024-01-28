@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 
 namespace Doinject
 {
-    public class CustomFactoryResolver<TFactory> : AbstractInternalResolver<TFactory>, IFactoryResolver
+    public sealed class CustomFactoryResolver<TFactory> : AbstractInternalResolver<TFactory>, IFactoryResolver
     {
+        private object[] Args { get; }
+
         public TargetTypeInfo FactoryType { get; }
-        public object[] Args { get; }
 
         public CustomFactoryResolver(InstanceBag instanceBag, object[] args) : base(instanceBag)
         {

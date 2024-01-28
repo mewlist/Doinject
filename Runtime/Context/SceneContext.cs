@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class SceneContext : MonoBehaviour, IContext
     {
@@ -64,13 +64,14 @@ namespace Doinject.Context
             Context.Container.Bind<IContext>().FromInstance(this);
             Context.Container.BindFromInstance(SceneContextLoader);
             Context.Container.BindFromInstance(GameObjectContextLoader);
-            var targets = GetComponentsUnderContext<IBindingInstaller>();
-            Context.Install(targets, Arg);
+            var installers = GetComponentsUnderContext<IBindingInstaller>().ToList();
+            Context.Install(installers, Arg);
         }
 
         private async Task InjectIntoUnderContextObjects()
         {
-            var targets = GetComponentsUnderContext<IInjectableComponent>();
+            var targets = GetComponentsUnderContext<IInjectableComponent>()
+                .Where(x => x.enabled);
             await Task.WhenAll(targets.Select(x => Context.Container.InjectIntoAsync(x).AsTask()));
         }
 

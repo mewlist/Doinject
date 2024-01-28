@@ -3,7 +3,7 @@ using Mew.Core.Extensions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     [CreateAssetMenu(menuName = "Doinject/Create ProjectContext", fileName = "ProjectContext", order = 0)]
     public class ProjectContext : ScriptableObject, IContext
@@ -22,6 +22,9 @@ namespace Doinject.Context
 
         [field: SerializeField]
         private List<BindingInstallerScriptableObject> InstallerScriptableObjects { get; set; }
+
+        [field: SerializeField]
+        protected List<BindingInstallerComponent> InstallerPrefabs { get; set; }
 
         public Scene Scene => default;
         public GameObject ContextObject => null;
@@ -42,7 +45,18 @@ namespace Doinject.Context
             GameObjectContextLoader = go.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
             Context.InstallScriptableObjects(InstallerScriptableObjects);
+            InstallPrefabs(InstallerPrefabs);
             Context.Container.GenerateResolvers().Forget();
+        }
+
+        private void InstallPrefabs(List<BindingInstallerComponent> installerPrefabs)
+        {
+            foreach (var installerPrefab in installerPrefabs)
+            {
+                var installer = Instantiate(installerPrefab);
+                DontDestroyOnLoad(installer.gameObject);
+                installer.Install(Context.Container, new NullContextArg());
+            }
         }
 
         public void SetArgs(IContextArg arg)

@@ -7,12 +7,13 @@ using Object = UnityEngine.Object;
 
 namespace Doinject
 {
-    public class PrefabResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
+    public sealed class PrefabResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
     {
         private Object Prefab { get; }
-        public object[] Args { get; }
+        private object[] Args { get; }
         private Transform Under { get; }
         private bool WorldPositionStays { get; }
+
         public CacheStrategy CacheStrategy { get; }
 
         public PrefabResolver(Object prefab,

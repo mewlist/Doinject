@@ -4,12 +4,12 @@ using Mew.Core.UnityObjectHelpers;
 using Mew.Core.Tasks;
 using UnityEngine;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class ContextEntryPoint : MonoBehaviour
     {
         private TaskQueue TaskQueue { get; } = new();
-        public SceneContext SceneContext { get; set; }
+        private SceneContext SceneContext { get; set; }
 
         private async void Awake()
         {
@@ -51,7 +51,7 @@ namespace Doinject.Context
                 await SceneContext.SceneContextLoader.UnloadAllScenesAsync();
                 await UnityObjectHelper.DestroyAsync(SceneContext);
             }
-            Resources.UnloadUnusedAssets();
+            await Resources.UnloadUnusedAssets();
             await StartContext();
         }
     }
