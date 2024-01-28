@@ -19,7 +19,13 @@
         <toc-element topic="scene_transition.md"/>
         <toc-element topic="context_arg.md"/>
     </toc-element>
-    <toc-element topic="installer.md"/>
+    <toc-element topic="installer.md">
+        <toc-element topic="installer_component.md"/>
+        <toc-element topic="installer_prefab.md"/>
+        <toc-element topic="installer_scriptable_object.md"/>
+        <toc-element topic="empty_installer_component.md"/>
+        <toc-element topic="bind_components_in_scene_or_prefab.md"/>
+    </toc-element>
     <toc-element topic="bindings.md"/>
     <toc-element topic="bindings_advanced.md"/>
     <toc-element topic="troubleshooting.md"/>
