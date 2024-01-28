@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public interface IContext : IDisposable
     {

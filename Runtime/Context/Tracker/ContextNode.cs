@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class ContextNode
     {

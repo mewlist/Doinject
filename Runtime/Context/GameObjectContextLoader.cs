@@ -5,7 +5,7 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class GameObjectContextLoader : MonoBehaviour, IAsyncDisposable
     {
@@ -55,9 +55,10 @@ namespace Doinject.Context
             UnloadAllContextsAsync();
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (this) Destroy(this);
+            return new ValueTask();
         }
     }
 }

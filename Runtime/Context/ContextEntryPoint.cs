@@ -4,7 +4,7 @@ using Mew.Core.UnityObjectHelpers;
 using Mew.Core.Tasks;
 using UnityEngine;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class ContextEntryPoint : MonoBehaviour
     {
@@ -51,7 +51,7 @@ namespace Doinject.Context
                 await SceneContext.SceneContextLoader.UnloadAllScenesAsync();
                 await UnityObjectHelper.DestroyAsync(SceneContext);
             }
-            Resources.UnloadUnusedAssets();
+            await Resources.UnloadUnusedAssets();
             await StartContext();
         }
     }

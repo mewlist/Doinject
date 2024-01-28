@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Doinject.Context
+namespace Doinject
 {
     internal static class SceneExtensions
     {

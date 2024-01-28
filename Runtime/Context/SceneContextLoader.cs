@@ -9,7 +9,7 @@ using Mew.Core.UnityObjectHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class SceneContextLoader : MonoBehaviour, IAsyncDisposable
     {
@@ -111,9 +111,10 @@ namespace Doinject.Context
             await Task.WhenAll(ChildSceneContexts.ToArray().Select(x => UnloadAsync(x).AsTask()));
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (this) Destroy(this);
+            return new ValueTask();
         }
     }
 }

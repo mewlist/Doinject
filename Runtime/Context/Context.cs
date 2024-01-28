@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class Context : IAsyncDisposable
     {
+        private List<IBindingInstaller> Installers { get; } = new();
+
         public int Id { get; } = ContextTracker.Instance.GetNextId();
         public Scene Scene { get; }
         public GameObject GameObjectInstance { get; }
@@ -43,18 +46,26 @@ namespace Doinject.Context
         public void Install(IEnumerable<IBindingInstaller> targets, IContextArg contextArg)
         {
             foreach (var component in targets)
+            {
                 component.Install(Container, contextArg);
+                Installers.Add(component);
+            }
         }
 
         public void InstallScriptableObjects(
             List<BindingInstallerScriptableObject> targets)
         {
             foreach (var bindingScriptableObjectInstaller in targets)
+            {
                 bindingScriptableObjectInstaller.Install(Container, new NullContextArg());
+                Installers.Add(bindingScriptableObjectInstaller);
+            }
         }
 
         public async ValueTask DisposeAsync()
         {
+            foreach (var bindingInstaller in Installers)
+                bindingInstaller.Clear();
             ContextTracker.Instance.Remove(this);
             await Container.DisposeAsync();
         }

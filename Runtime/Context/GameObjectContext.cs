@@ -4,10 +4,12 @@ using Mew.Core.TaskHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Doinject.Context
+namespace Doinject
 {
     public class GameObjectContext : MonoBehaviour, IInjectableComponent, IContext, IGameObjectContextRoot
     {
+        private IContext ParentContext { get; set; }
+
         public Scene Scene => Context.Scene;
         public GameObject ContextObject => gameObject;
         public Context Context { get; private set; }
@@ -16,7 +18,6 @@ namespace Doinject.Context
         public GameObjectContextLoader GameObjectContextLoader { get; private set; }
         public IContextArg Arg { get; private set; } = new NullContextArg();
 
-        private IContext ParentContext { get; set; }
         private bool Initializing { get; set; }
         public bool Initialized { get; private set; }
 
@@ -98,13 +99,14 @@ namespace Doinject.Context
             Context.Container.Bind<IContext>().FromInstance(this);
             Context.Container.BindFromInstance(SceneContextLoader);
             Context.Container.BindFromInstance(GameObjectContextLoader);
-            var targets = GetComponentsUnderContext<IBindingInstaller>();
-            Context.Install(targets, Arg);
+            var installers = GetComponentsUnderContext<IBindingInstaller>();
+            Context.Install(installers, Arg);
         }
 
         private async Task InjectIntoUnderContextObjects()
         {
-            var targets = GetComponentsUnderContext<IInjectableComponent>();
+            var targets = GetComponentsUnderContext<IInjectableComponent>()
+                .Where(x => x.enabled);
             await Task.WhenAll(targets.Select(x
                 => Context.Container.InjectIntoAsync(x).AsTask()));
         }
