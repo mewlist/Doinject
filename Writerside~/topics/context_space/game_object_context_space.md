@@ -58,7 +58,7 @@ public async Task OnInjected()
 }
 ```
 
-## ```AutoContextLoader``` を使ってシーンをロードする
+## ```AutoContextLoader``` を使ってロードする
 
 コンテクスト空間内の任意の場所に、```AutoContextLoader``` コンポーネントを配置することで、
 プレハブ化されたゲームオブジェクトコンテクストをロードできます。
