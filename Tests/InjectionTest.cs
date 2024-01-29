@@ -103,5 +103,12 @@ namespace Doinject.Tests
                 container.BindTransient<ITestInterface>();
             });
         }
+
+        [Test]
+        public async Task OptionalInjectionTest()
+        {
+            container.BindTransient<OptionalInjectionTestClass>();
+            await container.ResolveAsync<OptionalInjectionTestClass>();
+        }
     }
 }

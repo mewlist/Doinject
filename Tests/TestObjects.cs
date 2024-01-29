@@ -73,6 +73,13 @@ namespace Doinject.Tests
         }
     }
 
+    public class OptionalInjectionTestClass
+    {
+        public OptionalInjectionTestClass([Optional]InjectedObject injectedObject)
+        {
+        }
+    }
+
     public class InjectableObject : IDisposable
     {
         public InjectedObject InjectedObject { get; set; }
