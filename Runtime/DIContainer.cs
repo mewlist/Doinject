@@ -370,10 +370,23 @@ namespace Doinject
 
                 var matched = scopedInstances
                     .FirstOrDefault(x => x.TargetType == parameterInfo.ParameterType);
-                if (!matched.IsValid)
-                    throw new FailedToResolveParameterException(parameterInfo.ParameterType, targetType);
 
-                parameters.Add(matched.Instance);
+                if (matched.IsValid)
+                {
+                    parameters.Add(matched.Instance);
+                }
+                else
+                {
+                    var optionalAttribute = parameterInfo.GetCustomAttribute(typeof(OptionalAttribute), true);
+                    var parameterType = parameterInfo.ParameterType;
+
+                    if (optionalAttribute is null)
+                        throw new FailedToResolveParameterException(parameterInfo.ParameterType, targetType);
+
+                    parameters.Add(parameterType.IsValueType
+                        ? Activator.CreateInstance(parameterType)
+                        : null);
+                }
             }
 
             return parameters.ToArray();
