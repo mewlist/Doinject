@@ -14,7 +14,7 @@ namespace Doinject
     public class SceneContextLoader : MonoBehaviour, IAsyncDisposable
     {
         private SceneLoader SceneLoader { get; } = new();
-        private IContext SceneContext { get; set; }
+        private IContext Context { get; set; }
         private List<SceneContext> ChildSceneContexts { get; } = new();
         public IReadOnlyList<SceneContext> ReadonlyChildSceneContexts => ChildSceneContexts;
         private TaskQueue TaskQueue { get; } = new();
@@ -33,9 +33,9 @@ namespace Doinject
             await SceneLoader.DisposeAsync();
         }
 
-        public void SetContext(IContext sceneContext)
+        public void SetContext(IContext context)
         {
-            SceneContext = sceneContext;
+            Context = context;
         }
 
         public async Task<SceneContext> LoadAsync(SceneReference sceneReference, bool active, IContextArg arg = null)
@@ -65,18 +65,17 @@ namespace Doinject
         private async ValueTask<SceneContext> LoadAsyncInternal(UnifiedScene unifiedScene, bool active,
             IContextArg arg, CancellationToken cancellationToken = default)
         {
+            using var contextSpaceScope = new ContextSpaceScope(Context);
+
             var scene = await SceneLoader.LoadAsync(unifiedScene, cancellationToken);
             if (!scene.IsValid()) return null;
             if (active) SceneManager.SetActiveScene(scene);
-
-            var entryPoint = scene.FindFirstObjectByType<ContextEntryPoint>();
-            if (entryPoint) return null;
 
             var sceneContext = UnityObjectHelper.InstantiateComponentInSceneRoot<SceneContext>(scene);
             sceneContext.SetArgs(arg);
             sceneContext.transform.SetSiblingIndex(0);
             ChildSceneContexts.Add(sceneContext);
-            await sceneContext.Initialize(scene, parentContext: SceneContext);
+            await sceneContext.Initialize(scene, parentContext: Context);
             return sceneContext;
         }
 

@@ -11,8 +11,11 @@ namespace Doinject.Context
             base.OnInspectorGUI();
 
             var entryPoint = (ContextEntryPoint) target;
-            if (GUILayout.Button("Reboot"))
-                entryPoint.Reboot();
+            if (Application.isPlaying)
+            {
+                if (GUILayout.Button("Reboot"))
+                    entryPoint.Reboot();
+            }
         }
 
         [MenuItem("GameObject/Doinject/Create Context Entry Point", false, 10)]
