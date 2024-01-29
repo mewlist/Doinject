@@ -13,18 +13,20 @@ namespace Doinject
         private HashSet<GameObjectContext> ChildContexts { get; } = new();
         public IReadOnlyCollection<GameObjectContext> ReadOnlyChildContexts => ChildContexts;
 
-        public void SetContext(IContext parentContext)
+        public void SetContext(IContext context)
         {
-            Context = parentContext;
+            Context = context;
         }
 
         public ValueTask<T> LoadAsync<T>(T gameObjectContextPrefab, IContextArg arg = null)
             where T: GameObjectContext
         {
+            using var contextSpaceScope = new ContextSpaceScope(Context);
             var gameObjectContext = Instantiate(gameObjectContextPrefab);
             gameObjectContext.SetArgs(arg);
             using var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
             SceneManager.MoveGameObjectsToScene(instanceIds, Context?.Scene ?? SceneManager.GetActiveScene());
+            Register(gameObjectContext);
             return new ValueTask<T>(gameObjectContext);
         }
 

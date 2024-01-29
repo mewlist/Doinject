@@ -19,16 +19,26 @@ namespace Doinject
 
         private async void OnDestroy()
         {
-            await TaskQueue.EnqueueAsync(ct =>
+            if (TaskQueue.Disposed) return;
+
+            await TaskQueue.EnqueueAsync(_ =>
             {
                 TaskQueue.Dispose();
                 return Task.CompletedTask;
             });
-            SceneContext.Dispose();
+
+            if (SceneContext) SceneContext.Dispose();
         }
 
         private async Task StartContext()
         {
+            if (ContextSpaceScope.Scoped)
+            {
+                TaskQueue.Dispose();
+                Destroy(this);
+                return;
+            }
+
             var scene = gameObject.scene;
             SceneContext = gameObject.AddComponent<SceneContext>();
             SceneContext.transform.SetSiblingIndex(0);
@@ -52,6 +62,7 @@ namespace Doinject
                 await UnityObjectHelper.DestroyAsync(SceneContext);
             }
             await Resources.UnloadUnusedAssets();
+            await ContextSpaceScope.WaitForRelease(destroyCancellationToken);
             await StartContext();
         }
     }
