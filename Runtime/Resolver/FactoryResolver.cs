@@ -33,6 +33,8 @@ namespace Doinject
 
         public override async ValueTask DisposeAsync()
         {
+            if (InnerResolver is IInternalResolver internalResolver)
+                await internalResolver.DisposeAsync();
             await InstanceBag.RemoveAll(TargetType);
         }
     }
