@@ -11,6 +11,7 @@ namespace Doinject
         private static List<IContext> StackedScope { get; set; } = new();
 
         public static bool Scoped => StackedScope.Any();
+        public static IContext CurrentContext => StackedScope.Last();
 
         private readonly IContext context;
 

@@ -16,6 +16,8 @@ namespace Doinject.Context
             {
                 if (GUILayout.Button("Dispose"))
                     gameObjectContext.Dispose();
+                if (GUILayout.Button("Reboot"))
+                    gameObjectContext.Reboot();
             }
         }
     }
