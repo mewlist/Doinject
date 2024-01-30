@@ -34,23 +34,22 @@ git@github.com:mewlist/Doinject.git
 
 ## エントリポイントを決める
 
-最初にすべきことは、DIフレームワークを適用したいシーンを開き、ヒエラルキにエントリポイントとなるコンポーネントを配置することです。
+最初にすべきことは、DIフレームワークを適用したいシーンを開き、ヒエラルキに ```SceneContext``` コンポーネントを配置することです。
 
-エントリポイントコンポーネントは、`ContextEntryPoint` という名前で、`Doinject` メニューから作成することができます。
+ヒエラルキビューで右クリックし、<ui-path>Doinject > Create Scene Context</ui-path>> メニューを選択します。
 
-![ContextMenu](CreateContextEntryPoint.png)
+![ContextMenu](CreateSceneContext.png)
 
-配置されたコンテクストエントリポイント
+配置されたシーンコンテクスト
 
-![ContextEntryPoint](ContextEntryPoint.png)
+![SceneContext.png](SceneContext.png)
 
 これで、このシーンは DI フレームワークの実行環境として機能するようになりました。
 試しに一度再生してみてください。
 
-![SceneContext](SceneContextCreated.png)
+![SceneContextCreated.png](SceneContextCreated.png)
 
-シーンが再生されると、このように自動的に SceneContext が生成されます。
-SceneContext　は、フレームワークにより自動的に生成されるものですので、シーンには配置しないようにしてください。
+シーンが再生されると、このように各種ローダーが生成されます。
 
 > Doinject は、「コンテクスト空間」内でのみ、その機能へアクセスできます。
 > 「コンテクスト空間」は、シーンやゲームオブジェクトに対して定義されます。また、ゲームオブジェクトコンテクストはヒエラルキの階層に従った空間を持ちます。
