@@ -8,35 +8,78 @@ using UnityEngine.SceneManagement;
 
 namespace Doinject
 {
-    public class SceneContext : MonoBehaviour, IContext
+    public sealed class SceneContext : AbstractContextComponent
     {
         private static readonly ConcurrentDictionary<Scene, SceneContext> SceneContextMap = new();
 
-        public static bool TryGetSceneContext(Scene scene, out SceneContext sceneContext)
+        public static bool TryGetSceneContext(Scene scene, out SceneContext sceneSceneContext)
         {
-            return SceneContextMap.TryGetValue(scene, out sceneContext);
+            return SceneContextMap.TryGetValue(scene, out sceneSceneContext);
         }
 
-        public GameObject ContextObject => gameObject;
-        public Context Context { get; private set; }
-        public SceneContextLoader OwnerSceneContextLoader { get; set; }
-        public SceneContextLoader SceneContextLoader { get; private set; }
-        public GameObjectContextLoader GameObjectContextLoader { get; private set; }
-        public IContextArg Arg { get; set; } = new NullContextArg();
 
-        public Scene Scene => Context.Scene;
+
+        public override Scene Scene => Context.Scene;
+        private SceneContextLoader ownerSceneContextLoader;
+        private SceneContextLoader OwnerSceneContextLoader => ownerSceneContextLoader;
+
+
+        private IContext ParentContext { get; set; }
+
+
+        protected override async void Awake()
+        {
+            base.Awake();
+            if (ContextSpaceScope.Scoped) return;
+            var scene = gameObject.scene;
+            await Boot(scene, parentContext: ProjectContext.Instance);
+        }
+
+        private async void OnDestroy()
+        {
+            await Shutdown();
+            if (Context is not null) SceneContextMap.Remove(Context.Scene, out _);
+            if (OwnerSceneContextLoader) await OwnerSceneContextLoader.UnloadAsync(this);
+        }
 
         public async Task Initialize(Scene scene, IContext parentContext)
         {
+            await Boot(scene, parentContext);
+        }
+
+        public async void Reboot()
+        {
+            await TaskQueue.EnqueueAsync(async _
+                => await RebootInternal());
+        }
+
+        private async Task RebootInternal()
+        {
+            await SceneContextLoader.UnloadAllScenesAsync();
+            await Shutdown();
+            await Resources.UnloadUnusedAssets();
+            await ContextSpaceScope.WaitForRelease(destroyCancellationToken);
+            await Boot(gameObject.scene, ParentContext);
+        }
+
+        private async Task Boot(Scene scene, IContext parentContext)
+        {
+            ParentContext = parentContext;
+
             Context = new Context(scene, parentContext?.Context);
             Context.Container.Bind<IContextArg>().FromInstance(Arg);
+
             if (GetComponentsUnderContext<SceneContext>().Any(x => x != this))
-                throw new InvalidOperationException("Do not place SceneContext statically in scene.");
-            OwnerSceneContextLoader = parentContext?.SceneContextLoader;
+                throw new InvalidOperationException("There are multiple SceneContexts in the same scene.");
+
+            ownerSceneContextLoader = parentContext?.SceneContextLoader;
+
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
+
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
+
             SceneContextMap[scene] = this;
 
             InstallBindings();
@@ -44,19 +87,11 @@ namespace Doinject
             await InjectIntoUnderContextObjects();
         }
 
-        public void SetArgs(IContextArg arg)
-        {
-            Arg = arg ?? new NullContextArg();
-        }
-
-        private async void OnDestroy()
+        private async Task Shutdown()
         {
             if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
-            var scene = Context.Scene;
-            await Context.DisposeAsync();
-            if (OwnerSceneContextLoader) await OwnerSceneContextLoader.UnloadAsync(this);
-            SceneContextMap.Remove(scene, out _);
+            if (Context is not null) await Context.DisposeAsync();
         }
 
         private void InstallBindings()
@@ -68,14 +103,7 @@ namespace Doinject
             Context.Install(installers, Arg);
         }
 
-        private async Task InjectIntoUnderContextObjects()
-        {
-            var targets = GetComponentsUnderContext<IInjectableComponent>()
-                .Where(x => x.enabled);
-            await Task.WhenAll(targets.Select(x => Context.Container.InjectIntoAsync(x).AsTask()));
-        }
-
-        private IEnumerable<T> GetComponentsUnderContext<T>()
+        protected override IEnumerable<T> GetComponentsUnderContext<T>()
         {
             return Scene.FindComponentsByType(typeof(T))
                 .Where(x =>
@@ -88,11 +116,6 @@ namespace Doinject
                     return !x.GetComponentInParent<GameObjectContext>();
                 })
                 .Cast<T>();
-        }
-
-        public void Dispose()
-        {
-            if (this) Destroy(this);
         }
     }
 }

@@ -15,8 +15,8 @@ namespace Doinject
     {
         private SceneLoader SceneLoader { get; } = new();
         private IContext Context { get; set; }
-        private List<SceneContext> ChildSceneContexts { get; } = new();
-        public IReadOnlyList<SceneContext> ReadonlyChildSceneContexts => ChildSceneContexts;
+        private List<IContext> ChildSceneContexts { get; } = new();
+        public IReadOnlyList<IContext> ReadonlyChildSceneContexts => ChildSceneContexts;
         private TaskQueue TaskQueue { get; } = new();
         private bool Disposed { get; set; }
 
@@ -71,7 +71,10 @@ namespace Doinject
             if (!scene.IsValid()) return null;
             if (active) SceneManager.SetActiveScene(scene);
 
-            var sceneContext = UnityObjectHelper.InstantiateComponentInSceneRoot<SceneContext>(scene);
+            var sceneContext =
+                scene.FindFirstObjectByType<SceneContext>()
+                ?? UnityObjectHelper.InstantiateComponentInSceneRoot<SceneContext>(scene);
+
             sceneContext.SetArgs(arg);
             sceneContext.transform.SetSiblingIndex(0);
             ChildSceneContexts.Add(sceneContext);
@@ -79,27 +82,26 @@ namespace Doinject
             return sceneContext;
         }
 
-        public async ValueTask UnloadAsync(SceneContext context)
+        public async ValueTask UnloadAsync(IContext sceneContext)
         {
-            await TaskQueue.EnqueueAsync(async ct =>
+            await TaskQueue.EnqueueAsync(async _ =>
             {
-                await UnloadAsyncInternal(context);
+                await UnloadAsyncInternal(sceneContext);
             });
         }
 
-        private async ValueTask UnloadAsyncInternal(SceneContext context)
+        private async ValueTask UnloadAsyncInternal(IContext sceneContext)
         {
-            var sceneName = context.Scene.name;
-            if (!ChildSceneContexts.Contains(context)) return;
+            if (!ChildSceneContexts.Contains(sceneContext)) return;
 
             foreach (var childSceneContext in ChildSceneContexts.ToArray())
                 await childSceneContext.SceneContextLoader.UnloadAllScenesAsync();
 
-            ChildSceneContexts.Remove(context);
+            ChildSceneContexts.Remove(sceneContext);
 
-            context.Dispose();
+            sceneContext.Dispose();
 
-            await SceneLoader.UnloadAsync(context.Scene);
+            await SceneLoader.UnloadAsync(sceneContext.Scene);
         }
 
         public async ValueTask UnloadAllScenesAsync()

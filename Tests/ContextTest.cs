@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Mew.Core.Assets;
-using Mew.Core.TaskHelpers;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -53,9 +52,6 @@ namespace Doinject.Tests
             var goContextLoader = go.AddComponent<GameObjectContextLoader>();
 
             var goContext = await goContextLoader.LoadAsync(goContextPrefab);
-
-            while (!goContext.Initialized)
-                await TaskHelper.NextFrame();
 
             Assert.That(SceneManager.loadedSceneCount, Is.EqualTo(1));
             Assert.That(Object.FindFirstObjectByType<GameObjectContext>(), Is.EqualTo(goContext));

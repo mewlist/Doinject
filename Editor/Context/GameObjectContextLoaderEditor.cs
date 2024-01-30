@@ -15,10 +15,10 @@ namespace Doinject.Context
             GUILayout.Label("Loaded GameObjects:");
             EditorGUILayout.BeginVertical(GUI.skin.box);
             EditorGUI.indentLevel++;
+
             foreach (var child in goCtxLoader.ReadOnlyChildContexts)
-            {
-                if (child.Initialized) GUILayout.Label(child.Context.ToString());
-            }
+                GUILayout.Label(child.Context.ToString());
+
             EditorGUI.indentLevel--;
             EditorGUILayout.EndVertical();
 

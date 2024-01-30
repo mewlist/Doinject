@@ -1,61 +1,94 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Mew.Core.TaskHelpers;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Doinject
 {
-    public class GameObjectContext : MonoBehaviour, IInjectableComponent, IContext, IGameObjectContextRoot
+    public sealed class GameObjectContext : AbstractContextComponent, IGameObjectContextRoot
     {
         private IContext ParentContext { get; set; }
 
-        public Scene Scene => Context.Scene;
-        public GameObject ContextObject => gameObject;
-        public Context Context { get; private set; }
-        public SceneContextLoader OwnerSceneContextLoader => ParentContext.SceneContextLoader;
-        public SceneContextLoader SceneContextLoader { get; private set; }
-        public GameObjectContextLoader GameObjectContextLoader { get; private set; }
-        public IContextArg Arg { get; private set; } = new NullContextArg();
+        public override Scene Scene => Context.Scene;
 
-        private bool Initializing { get; set; }
-        public bool Initialized { get; private set; }
 
-        private async Task Initialize()
+        protected override async void Awake()
         {
-            if (Initializing || Initialized) return;
-            Initializing = true;
+            base.Awake();
+            if (ContextSpaceScope.Scoped) return;
+            await Boot(FindParentContext());
+        }
 
-            ParentContext = FindParentContext();
+        private async void OnDestroy()
+        {
+            if (Context is null) return;
+            await Shutdown();
+            ParentContext?.GameObjectContextLoader.Unregister(this);
+            if (gameObject) Destroy(gameObject);
+        }
+
+        public async Task Initialize()
+        {
+            await Boot(ContextSpaceScope.CurrentContext);
+        }
+
+        public async void Reboot()
+        {
+            await TaskQueue.EnqueueAsync(async _
+                => await RebootInternal());
+        }
+
+        private async Task RebootInternal()
+        {
+            await SceneContextLoader.UnloadAllScenesAsync();
+            await Shutdown();
+            await ContextSpaceScope.WaitForRelease(destroyCancellationToken);
+            await Boot(ParentContext);
+        }
+
+        private async Task Boot(IContext parentContext)
+        {
+            ParentContext = parentContext;
+
             Context = new Context(gameObject, ParentContext?.Context);
             Context.Container.Bind<IContextArg>().FromInstance(Arg);
+
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
+
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
 
             ParentContext?.GameObjectContextLoader.Register(this);
 
-            await InstallBindings();
+            InstallBindings();
             await Context.Container.GenerateResolvers();
             await InjectIntoUnderContextObjects();
-
-            Initializing = false;
-            Initialized = true;
         }
 
-        public void SetArgs(IContextArg arg)
+        private async Task Shutdown()
         {
-            Arg = arg ?? new NullContextArg();
+            if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
+            if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
+            if (Context is not null) await Context.DisposeAsync();
         }
 
-        private async void Start()
+        private void InstallBindings()
         {
-            while (!Initializing && !Initialized)
-            {
-                await TaskHelper.NextFrame();
-                if (this) await Initialize();
-            }
+            Context.Container.Bind<IContext>().FromInstance(this);
+            Context.Container.BindFromInstance(SceneContextLoader);
+            Context.Container.BindFromInstance(GameObjectContextLoader);
+            var installers = GetComponentsUnderContext<IBindingInstaller>();
+            Context.Install(installers, Arg);
+        }
+
+        protected override IEnumerable<T> GetComponentsUnderContext<T>()
+        {
+            var targetType = typeof(T);
+            return transform.GetComponentsInChildren(targetType, true)
+                .Where(x => x.GetComponentInParent<GameObjectContext>() == this)
+                .Where(x => x != this)
+                .Cast<T>();
         }
 
         private IContext FindParentContext()
@@ -69,61 +102,7 @@ namespace Doinject
             if (SceneContext.TryGetSceneContext(gameObject.scene, out var sceneContext))
                 return sceneContext;
 
-            if (ProjectContext.Instance)
-                return ProjectContext.Instance;
-
-            return null;
-        }
-
-        private GameObjectContext[] FindChildContexts()
-        {
-            return transform.GetComponentsInChildren<GameObjectContext>(true)
-                .Where(x => x != this)
-                .Where(x => x.transform.parent && x.transform.parent.GetComponentInParent<GameObjectContext>() == this)
-                .ToArray();
-        }
-
-        private async void OnDestroy()
-        {
-            if (Context is null) return;
-            if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
-            if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
-            await Context.DisposeAsync();
-            ParentContext?.GameObjectContextLoader.Unregister(this);
-            if (gameObject) Destroy(gameObject);
-        }
-
-        private async Task InstallBindings()
-        {
-            if (!Initialized) await Initialize();
-            Context.Container.Bind<IContext>().FromInstance(this);
-            Context.Container.BindFromInstance(SceneContextLoader);
-            Context.Container.BindFromInstance(GameObjectContextLoader);
-            var installers = GetComponentsUnderContext<IBindingInstaller>();
-            Context.Install(installers, Arg);
-        }
-
-        private async Task InjectIntoUnderContextObjects()
-        {
-            var targets = GetComponentsUnderContext<IInjectableComponent>()
-                .Where(x => x.enabled);
-            await Task.WhenAll(targets.Select(x
-                => Context.Container.InjectIntoAsync(x).AsTask()));
-        }
-
-        private T[] GetComponentsUnderContext<T>()
-        {
-            var targetType = typeof(T);
-            return transform.GetComponentsInChildren(targetType, true)
-                .Where(x => x.GetComponentInParent<GameObjectContext>() == this)
-                .Where(x => x != this)
-                .Cast<T>()
-                .ToArray();
-        }
-
-        public void Dispose()
-        {
-            if (this) Destroy(this);
+            return ProjectContext.Instance;
         }
     }
 }

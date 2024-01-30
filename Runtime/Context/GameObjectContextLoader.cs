@@ -18,8 +18,7 @@ namespace Doinject
             Context = context;
         }
 
-        public ValueTask<T> LoadAsync<T>(T gameObjectContextPrefab, IContextArg arg = null)
-            where T: GameObjectContext
+        public async ValueTask<GameObjectContext> LoadAsync(GameObjectContext gameObjectContextPrefab, IContextArg arg = null)
         {
             using var contextSpaceScope = new ContextSpaceScope(Context);
             var gameObjectContext = Instantiate(gameObjectContextPrefab);
@@ -27,7 +26,8 @@ namespace Doinject
             using var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
             SceneManager.MoveGameObjectsToScene(instanceIds, Context?.Scene ?? SceneManager.GetActiveScene());
             Register(gameObjectContext);
-            return new ValueTask<T>(gameObjectContext);
+            await gameObjectContext.Initialize();
+            return gameObjectContext;
         }
 
         public void Register(GameObjectContext gameObjectContext)

@@ -26,10 +26,7 @@ namespace Doinject
         [field: SerializeField]
         protected List<BindingInstallerComponent> InstallerPrefabs { get; set; }
 
-        private Component EntryPointComponent { get; set; }
-
         public Scene Scene => default;
-        public GameObject ContextObject => null;
         public Context Context { get; private set; }
         public SceneContextLoader OwnerSceneContextLoader => null;
         public SceneContextLoader SceneContextLoader { get; private set; }
