@@ -46,6 +46,7 @@ namespace Doinject
                 using var instanceIds = new NativeArray<int>( new [] { installer.gameObject.GetInstanceID() }, Allocator.Temp);
                 SceneManager.MoveGameObjectsToScene(instanceIds, gameObject.scene);
                 installer.Install(container, contextArg);
+                container.PushInstance(installer);
                 InstalledPrefabs.Add(installer.gameObject);
             }
 
@@ -65,12 +66,6 @@ namespace Doinject
                 var genericMethod = method.MakeGenericMethod(componentType);
                 genericMethod.Invoke(container, new object[] { component });
             }
-        }
-
-        public void Clear()
-        {
-            foreach (var installedPrefab in InstalledPrefabs)
-                Destroy(installedPrefab);
         }
     }
 }

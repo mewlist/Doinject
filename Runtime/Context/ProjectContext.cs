@@ -43,7 +43,7 @@ namespace Doinject
             SceneContextLoader.SetContext(this);
             GameObjectContextLoader = go.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
-            Context.InstallScriptableObjects(InstallerScriptableObjects);
+            Context.Install(InstallerScriptableObjects, new NullContextArg());
             InstallPrefabs(InstallerPrefabs);
             Context.Container.GenerateResolvers().Forget();
         }

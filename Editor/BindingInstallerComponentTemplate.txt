@@ -1,10 +1,9 @@
 using Doinject;
 
-public class #SCRIPTNAME# : BindingInstallerComponent
+public class #SCRIPTNAME# : MonoBehaviour, IBindingInstaller
 {
-    public override void Install(DIContainer container, IContextArg contextArg)
+    public void Install(DIContainer container, IContextArg contextArg)
     {
-        base.Install(container, contextArg);
         // Bind your dependencies here
     }
 }
