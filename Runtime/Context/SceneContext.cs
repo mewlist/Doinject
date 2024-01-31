@@ -18,7 +18,6 @@ namespace Doinject
         }
 
 
-
         public override Scene Scene => Context.Scene;
         private SceneContextLoader ownerSceneContextLoader;
         private SceneContextLoader OwnerSceneContextLoader => ownerSceneContextLoader;

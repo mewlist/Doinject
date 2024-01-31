@@ -20,11 +20,12 @@ namespace Doinject
         private Scene Scene { get; set; }
         internal Dictionary<TargetTypeInfo, BinderContext> BinderMap { get; } = new();
         private Dictionary<TargetTypeInfo, IInternalResolver> Resolvers { get; } = new();
+        private InstanceBag ResolvedInstanceBag { get; } = new();
         private InstanceBag InstanceBag { get; } = new();
         private CancellationTokenSource CancellationTokenSource { get; } = new();
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
-        public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => InstanceBag.ReadOnlyInstanceMap;
+        public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
 
 
 
@@ -125,7 +126,7 @@ namespace Doinject
             BinderMap.Clear();
             foreach (var (targetType, binderContext) in toConvert)
             {
-                var resolver = binderContext.ToResolver(InstanceBag);
+                var resolver = binderContext.ToResolver(ResolvedInstanceBag);
                 if (resolver is IFactoryResolver factoryResolver)
                 {
                     var factoryInterfaces = factoryResolver.FactoryType.FindFactoryInterfaces();
@@ -444,6 +445,11 @@ namespace Doinject
                 throw new Exception($"Already has binding for type [{targetType}]");
         }
 
+        public void PushInstance(object installer)
+        {
+            InstanceBag.Add(new TargetTypeInfo(installer.GetType()), installer);
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (CancellationTokenSource.IsCancellationRequested) return;
@@ -452,6 +458,7 @@ namespace Doinject
 
             await Task.WhenAll(Resolvers.Select(x => x.Value.DisposeAsync().AsTask()));
             Resolvers.Clear();
+            await ResolvedInstanceBag.DisposeAsync();
             await InstanceBag.DisposeAsync();
             Parent = null;
             Scene = default;
