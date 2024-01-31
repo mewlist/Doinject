@@ -18,7 +18,11 @@ namespace Doinject
         }
 
 
-        public override Scene Scene => Context.Scene;
+        public override Scene Scene => gameObject.scene;
+        public bool isReverseLoaded;
+        public override bool IsReverseLoaded => isReverseLoaded;
+        public bool Loaded { get; private set; }
+
         private SceneContextLoader ownerSceneContextLoader;
         private SceneContextLoader OwnerSceneContextLoader => ownerSceneContextLoader;
 
@@ -29,9 +33,12 @@ namespace Doinject
         protected override async void Awake()
         {
             base.Awake();
+
             if (ContextSpaceScope.Scoped) return;
-            var scene = gameObject.scene;
-            await Boot(scene, parentContext: ProjectContext.Instance);
+
+            isReverseLoaded = ParentContextLoadingScope.Scoped;
+
+            await Boot(Scene, await ResolveParentContext());
         }
 
         private async void OnDestroy()
@@ -82,12 +89,22 @@ namespace Doinject
             SceneContextMap[scene] = this;
 
             InstallBindings();
+
+            var injectableComponents
+                = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
+
             await Context.Container.GenerateResolvers();
-            await InjectIntoUnderContextObjects();
+
+            await Task.WhenAll(injectableComponents.Select(x
+                => Context.Container.InjectIntoAsync(x).AsTask()));
+
+            Loaded = true;
         }
 
         private async Task Shutdown()
         {
+            isReverseLoaded = false;
+            Loaded = false;
             if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
             if (Context is not null) await Context.DisposeAsync();
@@ -100,6 +117,19 @@ namespace Doinject
             Context.Container.BindFromInstance(GameObjectContextLoader);
             var installers = GetComponentsUnderContext<IBindingInstaller>().ToList();
             Context.Install(installers, Arg);
+        }
+
+        private async Task<IContext> ResolveParentContext()
+        {
+            var requirements = GetComponentsUnderContext<ParentSceneContextRequirement>().ToArray();
+
+            if (!requirements.Any()) return ProjectContext.Instance;
+
+            if (requirements.Length > 1)
+                throw new Exception("There are multiple ParentSceneContextRequirements in the same scene.");
+
+            var requirement = requirements.First();
+            return await requirement.ResolveParentContext(this);
         }
 
         protected override IEnumerable<T> GetComponentsUnderContext<T>()

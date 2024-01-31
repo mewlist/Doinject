@@ -31,6 +31,8 @@ namespace Doinject
         public SceneContextLoader OwnerSceneContextLoader => null;
         public SceneContextLoader SceneContextLoader { get; private set; }
         public GameObjectContextLoader GameObjectContextLoader { get; private set; }
+        public bool IsReverseLoaded => false;
+
 
 
         private void Initialize()

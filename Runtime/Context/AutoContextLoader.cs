@@ -24,6 +24,9 @@ namespace Doinject
             foreach (var gameObjectContextPrefab in gameObjectContextPrefabs)
                 await Context.GameObjectContextLoader.LoadAsync(gameObjectContextPrefab);
 
+            // If this context is loaded from child scene context, do not load child scene contexts.
+            if (Context.IsReverseLoaded) return;
+
             foreach (var sceneContext in sceneContexts)
                 await Context.SceneContextLoader.LoadAsync(sceneContext, active: true);
         }
