@@ -10,5 +10,6 @@ namespace Doinject
         Context Context { get; }
         SceneContextLoader SceneContextLoader { get; }
         GameObjectContextLoader GameObjectContextLoader { get; }
+        bool IsReverseLoaded { get; }
     }
 }

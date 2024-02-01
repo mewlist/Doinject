@@ -10,6 +10,8 @@ namespace Doinject
         private IContext ParentContext { get; set; }
 
         public override Scene Scene => Context.Scene;
+        public override bool IsReverseLoaded => false;
+
 
 
         protected override async void Awake()
@@ -62,8 +64,14 @@ namespace Doinject
             ParentContext?.GameObjectContextLoader.Register(this);
 
             InstallBindings();
+
+            var injectableComponents
+                = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
+
             await Context.Container.GenerateResolvers();
-            await InjectIntoUnderContextObjects();
+
+            await Task.WhenAll(injectableComponents.Select(x
+                => Context.Container.InjectIntoAsync(x).AsTask()));
         }
 
         private async Task Shutdown()

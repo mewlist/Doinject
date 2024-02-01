@@ -112,6 +112,11 @@ namespace Doinject
             await Task.WhenAll(ChildSceneContexts.ToArray().Select(x => UnloadAsync(x).AsTask()));
         }
 
+        public void AddChild(SceneContext target)
+        {
+            ChildSceneContexts.Add(target);
+        }
+
         public ValueTask DisposeAsync()
         {
             if (this) Destroy(this);

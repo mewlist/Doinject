@@ -124,6 +124,7 @@ namespace Doinject
             if (!BinderMap.Any()) return;
             var toConvert = new Dictionary<TargetTypeInfo, BinderContext>(BinderMap);
             BinderMap.Clear();
+            var newResolvers = new List<IInternalResolver>();
             foreach (var (targetType, binderContext) in toConvert)
             {
                 var resolver = binderContext.ToResolver(ResolvedInstanceBag);
@@ -135,16 +136,21 @@ namespace Doinject
                 }
                 else
                     Resolvers[targetType] = resolver;
-                if (resolver is ICacheStrategy cacheableResolver)
+
+                newResolvers.Add(resolver);
+            }
+
+            // try cache
+            foreach (var newResolver in newResolvers)
+            {
+                if (newResolver is not ICacheStrategy cacheableResolver) continue;
+                try
                 {
-                    try
-                    {
-                        await cacheableResolver.TryCacheAsync(this);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new FailedToCacheException(resolver, e);
-                    }
+                    await cacheableResolver.TryCacheAsync(this);
+                }
+                catch (Exception e)
+                {
+                    throw new FailedToCacheException(newResolver, e);
                 }
             }
         }
