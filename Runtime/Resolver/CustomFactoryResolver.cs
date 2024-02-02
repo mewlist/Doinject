@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Doinject
 {
     public sealed class CustomFactoryResolver<TFactory> : AbstractInternalResolver<TFactory>, IFactoryResolver
     {
+        private AwaitableCompletionSource CachingCompletionSource { get; set; }
         private object[] Args { get; }
 
         public TargetTypeInfo FactoryType { get; }
@@ -19,13 +21,17 @@ namespace Doinject
         public override async ValueTask<TFactory> ResolveAsync(IReadOnlyDIContainer container, object[] args = null)
         {
             // always cached
+            if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
             if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                 return (TFactory)InstanceBag.OfType(TargetType).First();
+            CachingCompletionSource = new AwaitableCompletionSource();
 
             var instance = await container.InstantiateAsync<TFactory>(
                 Args ?? args,
                 Array.Empty<ScopedInstance>());
             InstanceBag.Add(TargetType, instance);
+            CachingCompletionSource?.TrySetResult();
+            CachingCompletionSource = null;
             return instance;
         }
 

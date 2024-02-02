@@ -43,12 +43,25 @@ namespace Doinject.Tests
 
     public class InjectedObject : IAsyncDisposable
     {
+        public bool OnInjectedCalled { get; private set; }
+        public bool OnPostInjectedCalled { get; private set; }
+
         public InjectedObject()
         { }
 
         public ValueTask DisposeAsync()
         {
             return new ValueTask(Task.CompletedTask);
+        }
+
+        public void OnInjected()
+        {
+            OnInjectedCalled = true;
+        }
+
+        public void OnPostInjected()
+        {
+            OnPostInjectedCalled = true;
         }
     }
 

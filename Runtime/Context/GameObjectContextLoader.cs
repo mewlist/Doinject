@@ -23,8 +23,9 @@ namespace Doinject
             using var contextSpaceScope = new ContextSpaceScope(Context);
             var gameObjectContext = Instantiate(gameObjectContextPrefab);
             gameObjectContext.SetArgs(arg);
-            using var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
+            var instanceIds = new NativeArray<int>( new [] { gameObjectContext.gameObject.GetInstanceID() }, Allocator.Temp);
             SceneManager.MoveGameObjectsToScene(instanceIds, Context?.Scene ?? SceneManager.GetActiveScene());
+            instanceIds.Dispose();
             Register(gameObjectContext);
             await gameObjectContext.Initialize();
             return gameObjectContext;

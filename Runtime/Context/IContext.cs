@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Doinject
@@ -11,5 +10,6 @@ namespace Doinject
         SceneContextLoader SceneContextLoader { get; }
         GameObjectContextLoader GameObjectContextLoader { get; }
         bool IsReverseLoaded { get; }
+        bool InjectionProcessing { get; }
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Doinject
 {
     public sealed class TypeResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
         where TInstance : T
     {
+        private AwaitableCompletionSource CachingCompletionSource { get; set; }
         private object[] Args { get; }
 
         public CacheStrategy CacheStrategy { get; }
@@ -23,8 +25,10 @@ namespace Doinject
             switch (CacheStrategy)
             {
                 case CacheStrategy.Singleton: case CacheStrategy.Cached:
+                    if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
+                    CachingCompletionSource = new AwaitableCompletionSource();
                     break;
                 case CacheStrategy.Transient:
                 default:
@@ -34,6 +38,8 @@ namespace Doinject
             var instance = await Instantiate(container, args);
             if (CacheStrategy != CacheStrategy.Transient)
                 InstanceBag.Add(TargetType, instance);
+            CachingCompletionSource?.TrySetResult();
+            CachingCompletionSource = null;
             return instance;
         }
 

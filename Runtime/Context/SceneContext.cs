@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mew.Core.TaskHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -19,7 +20,7 @@ namespace Doinject
 
 
         public override Scene Scene => gameObject.scene;
-        public bool isReverseLoaded;
+        private bool isReverseLoaded;
         public override bool IsReverseLoaded => isReverseLoaded;
         public bool Loaded { get; private set; }
 
@@ -97,6 +98,12 @@ namespace Doinject
 
             await Task.WhenAll(injectableComponents.Select(x
                 => Context.Container.InjectIntoAsync(x).AsTask()));
+
+            while (InjectionProcessing)
+            {
+                destroyCancellationToken.ThrowIfCancellationRequested();
+                await TaskHelper.NextFrame();
+            }
 
             Loaded = true;
         }
