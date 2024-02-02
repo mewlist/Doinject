@@ -23,9 +23,13 @@ namespace Doinject
         private InstanceBag ResolvedInstanceBag { get; } = new();
         private InstanceBag InstanceBag { get; } = new();
         private CancellationTokenSource CancellationTokenSource { get; } = new();
+        private AwaitableCompletionSource InjectionProcessingCompletionSource { get; } = new();
+        private int InjectionProcessingCount { get; set; }
+
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
+        public bool InjectionProcessing => InjectionProcessingCount > 0;
 
 
 
@@ -264,8 +268,12 @@ namespace Doinject
         public ValueTask InjectIntoAsync<T>(T target, object[] args)
             => InjectIntoAsync(target, args, Array.Empty<ScopedInstance>());
 
-        public async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
+        private async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
+            if (InjectionProcessingCount == 0)
+                InjectionProcessingCompletionSource.Reset();
+            InjectionProcessingCount++;
+
             var targetType = target.GetType();
             var resolverType = targetType;
 
@@ -282,68 +290,89 @@ namespace Doinject
             var methods = targetType.GetMethods();
             foreach (var methodInfo in methods.Reverse())
             {
-                object[] attr = default;
-
                 try
                 {
-                    attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
+                    var attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
+                    if (!attr.Any()) continue;
+                    await DoInject(target, methodInfo, args, scopedInstances);
                 }
-                catch (StackOverflowException e)
+                catch (Exception e)
                 {
+                    InjectionProcessingCount--;
+                    if (!InjectionProcessing)
+                    {
+                        InjectionProcessingCompletionSource.TrySetResult();
+                    }
                     throw new FailedToInjectException(target, e);
-                }
-
-                if (attr.Any())
-                {
-                    try
-                    {
-                        var parameters = await ResolveParameters(target.GetType(), methodInfo.GetParameters(), args, scopedInstances);
-                        if (methodInfo.ReturnType == typeof(Task))
-                        {
-                            var task = (Task)methodInfo.Invoke(target, parameters);
-                            await task;
-                        }
-                        else if (methodInfo.ReturnType == typeof(ValueTask))
-                        {
-                            var task = (ValueTask)methodInfo.Invoke(target, parameters);
-                            await task;
-                        }
-                        else
-                        {
-                            methodInfo.Invoke(target, parameters);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        throw new FailedToInjectException(target, e);
-                    }
                 }
             }
 
-            TryCallOnInjectedCallback(target, methods).Forget();
+            var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
+            await InvokeCallback(target, onInjectedCallback);
+
+            InjectionProcessingCount--;
+            if (!InjectionProcessing)
+            {
+                InjectionProcessingCompletionSource.TrySetResult();
+                TryCallPostInjectedCallback(target, methods, completionSource: null).Forget();
+            }
+            else
+            {
+                TryCallPostInjectedCallback(target, methods, InjectionProcessingCompletionSource).Forget();
+            }
         }
 
-        private async ValueTask TryCallOnInjectedCallback<T>(T target, IEnumerable<MethodInfo> methods)
+        private async Task TryCallPostInjectedCallback<T>(
+            T target,
+            IEnumerable<MethodInfo> methods,
+            AwaitableCompletionSource completionSource)
         {
-            var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
-            if (onInjectedCallback is not null)
+            if (completionSource is not null)
+                await completionSource.Awaitable;
+            var onPostInjected = methods.FirstOrDefault(x => x.Name == "OnPostInjected" && x.GetParameters().Length == 0);
+            await InvokeCallback(target, onPostInjected);
+        }
+
+        private async ValueTask DoInject<T>(T target, MethodInfo methodInfo, object[] args,
+            ScopedInstance[] scopedInstances)
+        {
+            var parameters = await ResolveParameters(target.GetType(), methodInfo.GetParameters(), args, scopedInstances);
+            if (methodInfo.ReturnType == typeof(Task))
+            {
+                var task = (Task)methodInfo.Invoke(target, parameters);
+                await task;
+            }
+            else if (methodInfo.ReturnType == typeof(ValueTask))
+            {
+                var task = (ValueTask)methodInfo.Invoke(target, parameters);
+                await task;
+            }
+            else
+            {
+                methodInfo.Invoke(target, parameters);
+            }
+        }
+
+        private async ValueTask InvokeCallback<T>(T target, MethodInfo callback)
+        {
+            if (callback is not null)
             {
                 await TaskHelper.NextFrame();
                 if (CancellationTokenSource.IsCancellationRequested) return;
 
-                if (onInjectedCallback.ReturnType == typeof(Task))
+                if (callback.ReturnType == typeof(Task))
                 {
-                    var task = (Task)onInjectedCallback.Invoke(target, Array.Empty<object>());
+                    var task = (Task)callback.Invoke(target, Array.Empty<object>());
                     await task;
                 }
-                else if (onInjectedCallback.ReturnType == typeof(ValueTask))
+                else if (callback.ReturnType == typeof(ValueTask))
                 {
-                    var task = (ValueTask)onInjectedCallback.Invoke(target, Array.Empty<object>());
+                    var task = (ValueTask)callback.Invoke(target, Array.Empty<object>());
                     await task;
                 }
                 else
                 {
-                    onInjectedCallback.Invoke(target, Array.Empty<object>());
+                    callback.Invoke(target, Array.Empty<object>());
                 }
             }
         }

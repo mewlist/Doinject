@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Mew.Core.TaskHelpers;
 using NUnit.Framework;
 
 namespace Doinject.Tests
@@ -109,6 +110,19 @@ namespace Doinject.Tests
         {
             container.BindTransient<OptionalInjectionTestClass>();
             await container.ResolveAsync<OptionalInjectionTestClass>();
+        }
+
+        [Test]
+        public async Task InjectedCallbackTest()
+        {
+            container.BindTransient<InjectedObject>();
+            var instance = await container.ResolveAsync<InjectedObject>();
+            Assert.That(instance.OnInjectedCalled, Is.True);
+            Assert.That(instance.OnPostInjectedCalled, Is.False);
+            while (container.InjectionProcessing)
+                await TaskHelper.NextFrame();
+            await TaskHelper.NextFrame();
+            Assert.That(instance.OnPostInjectedCalled, Is.True);
         }
     }
 }
