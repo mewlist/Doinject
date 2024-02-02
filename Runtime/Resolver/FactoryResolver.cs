@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Doinject
 {
@@ -7,6 +8,7 @@ namespace Doinject
         where TFactory : IFactory
         where TResolver : IResolver<T>
     {
+        private AwaitableCompletionSource CachingCompletionSource { get; set; }
         private TResolver InnerResolver { get; }
         public TargetTypeInfo FactoryType { get; }
 
@@ -20,14 +22,18 @@ namespace Doinject
         public override async ValueTask<TFactory> ResolveAsync(IReadOnlyDIContainer container, object[] args = null)
         {
             // always cached
+            if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
             if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                 return (TFactory)InstanceBag.OfType(TargetType).First();
+            CachingCompletionSource = new AwaitableCompletionSource();
 
             var resolverType = typeof(TResolver);
             var instance = await container.InstantiateAsync<TFactory>(
                 args,
                 new ScopedInstance[] { new (resolverType, InnerResolver) });
             InstanceBag.Add(TargetType, instance);
+            CachingCompletionSource?.TrySetResult();
+            CachingCompletionSource = null;
             return instance;
         }
 

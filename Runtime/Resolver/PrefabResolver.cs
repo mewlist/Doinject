@@ -9,6 +9,7 @@ namespace Doinject
 {
     public sealed class PrefabResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
     {
+        private AwaitableCompletionSource CachingCompletionSource { get; set; }
         private Object Prefab { get; }
         private object[] Args { get; }
         private Transform Under { get; }
@@ -38,14 +39,18 @@ namespace Doinject
             switch (CacheStrategy)
             {
                 case CacheStrategy.Singleton: case CacheStrategy.Cached:
+                    if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
+                    CachingCompletionSource = new AwaitableCompletionSource();
                     break;
             }
 
             var instance = await Instantiate(container, args);
             if (CacheStrategy != CacheStrategy.Transient)
                 InstanceBag.Add(TargetType, instance);
+            CachingCompletionSource?.TrySetResult();
+            CachingCompletionSource = null;
             return instance;
         }
 
