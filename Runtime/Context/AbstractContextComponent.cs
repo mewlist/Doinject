@@ -7,7 +7,7 @@ namespace Doinject
 {
     public abstract class AbstractContextComponent : MonoBehaviour, IContext
     {
-        protected TaskQueue TaskQueue { get; } = new();
+        protected TaskQueue TaskQueue { get; } = new(TaskQueueLimitType.SwapLast, 2);
         protected IContextArg Arg { get; private set; } = new NullContextArg();
 
 
