@@ -34,7 +34,7 @@ namespace Doinject
         public SceneContextLoader SceneContextLoader { get; private set; }
         public GameObjectContextLoader GameObjectContextLoader { get; private set; }
         public bool IsReverseLoaded => false;
-        public bool InjectionProcessing => ContextInternal.RawContainer.InjectionProcessing;
+        public bool InjectionProcessing => ContextInternal.RawContainer.InjectProcessing;
 
 
         private void Initialize()

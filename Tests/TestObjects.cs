@@ -53,6 +53,7 @@ namespace Doinject.Tests
             return new ValueTask(Task.CompletedTask);
         }
 
+        [OnInjected]
         public void OnInjected()
         {
             OnInjectedCalled = true;

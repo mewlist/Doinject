@@ -23,13 +23,14 @@ namespace Doinject
         private InstanceBag ResolvedInstanceBag { get; } = new();
         private InstanceBag InstanceBag { get; } = new();
         private CancellationTokenSource CancellationTokenSource { get; } = new();
-        private AwaitableCompletionSource InjectionProcessingCompletionSource { get; } = new();
-        private int InjectionProcessingCount { get; set; }
+        private ParallelScope InjectionProcessingScope { get; } = new();
+        private ParallelScope AfterInjectionProcessingScope { get; } = new();
 
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
-        public bool InjectionProcessing => InjectionProcessingCount > 0;
+        public bool InjectProcessing => InjectionProcessingScope.Processing;
+        public bool AfterInjectProcessing => AfterInjectionProcessingScope.Processing;
 
 
 
@@ -270,9 +271,8 @@ namespace Doinject
 
         private async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
-            if (InjectionProcessingCount == 0)
-                InjectionProcessingCompletionSource.Reset();
-            InjectionProcessingCount++;
+            InjectionProcessingScope.Begin();
+            AfterInjectionProcessingScope.Begin();
 
             var targetType = target.GetType();
             var resolverType = targetType;
@@ -288,35 +288,12 @@ namespace Doinject
             }
 
             var methods = targetType.GetMethods();
-            foreach (var methodInfo in methods.Reverse())
-            {
-                try
-                {
-                    var attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
-                    if (!attr.Any()) continue;
-                    await DoInject(target, methodInfo, args, scopedInstances);
-                }
-                catch (Exception e)
-                {
-                    InjectionProcessingCount--;
-                    if (!InjectionProcessing)
-                    {
-                        InjectionProcessingCompletionSource.TrySetResult();
-                    }
-                    throw new FailedToInjectException(target, e);
-                }
-            }
 
-            InjectionProcessingCount--;
-            if (!InjectionProcessing)
-                InjectionProcessingCompletionSource.TrySetResult();
-
-            var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
-            InvokeCallback(
-                target,
-                onInjectedCallback,
-                completionSource: InjectionProcessing ? InjectionProcessingCompletionSource : null)
-                .Forget();
+            await InvokeInjectCallback(target, methods, args, scopedInstances);
+            InjectionProcessingScope.End();
+            await InvokeAfterInjectCallback(target, methods);
+            AfterInjectionProcessingScope.End();
+            InvokeOnInjectedCallback(target, methods).Forget();
         }
 
         private async ValueTask DoInject<T>(T target, MethodInfo methodInfo, object[] args,
@@ -339,14 +316,57 @@ namespace Doinject
             }
         }
 
-        private async ValueTask InvokeCallback<T>(T target, MethodInfo callback, AwaitableCompletionSource completionSource)
+        private async Task InvokeInjectCallback<T>(T target, IEnumerable<MethodInfo> methods, object[] args, ScopedInstance[] scopedInstances)
+        {
+            foreach (var methodInfo in methods.Reverse())
+            {
+                try
+                {
+                    var attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
+                    if (!attr.Any()) continue;
+                    await DoInject(target, methodInfo, args, scopedInstances);
+                }
+                catch (Exception e)
+                {
+                    InjectionProcessingScope.End();
+                    AfterInjectionProcessingScope.End();
+                    throw new FailedToInjectException(target, e);
+                }
+            }
+        }
+
+        private async ValueTask InvokeAfterInjectCallback(object target, IEnumerable<MethodInfo> methods)
+        {
+            foreach (var methodInfo in methods.Reverse())
+            {
+                var attr = methodInfo.GetCustomAttributes(typeof(PostInjectAttribute), true);
+                if (!attr.Any()) continue;
+                if (methodInfo.GetParameters().Length == 0)
+                    await InvokeCallback(target, methodInfo, InjectionProcessingScope);
+                else
+                    throw new Exception("PostInject method should not have any parameters");
+            }
+        }
+
+        private async ValueTask InvokeOnInjectedCallback(object target, IEnumerable<MethodInfo> methods)
+        {
+            await TaskHelper.NextFrame();
+            foreach (var methodInfo in methods.Reverse())
+            {
+                var attr = methodInfo.GetCustomAttributes(typeof(OnInjectedAttribute), true);
+                if (!attr.Any()) continue;
+                if (methodInfo.GetParameters().Length == 0)
+                    await InvokeCallback(target, methodInfo, InjectionProcessingScope);
+                else
+                    throw new Exception("OnInjected method should not have any parameters");
+            }
+        }
+
+        private async ValueTask InvokeCallback<T>(T target, MethodInfo callback, ParallelScope completionSource)
         {
             if (callback is null) return;
 
-            if (completionSource is not null)
-                await completionSource.Awaitable;
-            else
-                await TaskHelper.NextFrame();
+            await InjectionProcessingScope.Wait();
 
             if (CancellationTokenSource.IsCancellationRequested) return;
 
@@ -429,8 +449,12 @@ namespace Doinject
                 return (T)instance;
             }
 
-            if (Parent is not null)
+            if (Parent is DIContainer raw)
+            {
+                if (raw.InjectProcessing)
+                    throw new Exception("Parent container is processing injection. Use OnInjected callback.");
                 return await Parent.ResolveAsync<T>();
+            }
 
             throw new FailedToResolveException(targetType);
         }
@@ -446,8 +470,12 @@ namespace Doinject
                 return instance;
             }
 
-            if (Parent is not null)
+            if (Parent is DIContainer raw)
+            {
+                if (raw.InjectProcessing)
+                    throw new Exception("Parent container is processing injection. Use OnInjected callback.");
                 return await Parent.ResolveAsync(targetType);
+            }
 
             throw new FailedToResolveException(targetType);
         }
