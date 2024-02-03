@@ -15,7 +15,7 @@ namespace Doinject
         public GameObject GameObjectInstance { get; }
         public IReadOnlyDIContainer Container => container;
         public Context Parent { get; }
-        public bool InjectionProcessing => container.InjectionProcessing;
+        public bool InjectProcessing => container.AfterInjectProcessing;
 
         protected Context()
         {

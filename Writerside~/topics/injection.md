@@ -35,6 +35,7 @@ public class SomeClass
 
 ## OnInjected() コールバック
 
+
 ```OnInjected()``` というメソッドは(引数なし・public) は、
 インスタンスの注入が完了したタイミングで、自動的に呼び出されます。
 ```Task```, ```ValueTask``` の戻り値を持つ非同期関数であっても問題ありません。
@@ -55,6 +56,7 @@ public class SomeClass
     }
     
     // インスタンスの注入が完了したタイミングで、自動的に呼び出されます
+    [OnInjected]
     public void OnInjected()
     {
         ...

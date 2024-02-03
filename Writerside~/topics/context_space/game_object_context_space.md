@@ -52,6 +52,7 @@ public void Construct(IContext context)
 }
 
 // OnInjected method is implicitly called after all dependencies are injected if defined.
+[OnInjected]
 public async Task OnInjected()
 {
     await context.GameObjectContextLoader.LoadAsync(gameObjectContextPrefab);

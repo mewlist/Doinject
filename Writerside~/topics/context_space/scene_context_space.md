@@ -40,6 +40,7 @@ public class LoadChildScene : MonoBehaviour, IInjectableComponent
         this.sceneContextLoader = sceneContextLoader;
     }
     
+    [OnInjected]
     public async Task OnInjected()
     {
         await sceneContextLoader.LoadAsync(childScene, active: true);
