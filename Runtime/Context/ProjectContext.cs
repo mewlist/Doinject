@@ -26,30 +26,31 @@ namespace Doinject
         [field: SerializeField]
         protected List<BindingInstallerComponent> InstallerPrefabs { get; set; }
 
+        private ContextInternal ContextInternal { get; set; }
+
         public Scene Scene => default;
-        public Context Context { get; private set; }
+        public Context Context => ContextInternal;
         public SceneContextLoader OwnerSceneContextLoader => null;
         public SceneContextLoader SceneContextLoader { get; private set; }
         public GameObjectContextLoader GameObjectContextLoader { get; private set; }
         public bool IsReverseLoaded => false;
-        public bool InjectionProcessing => Context.Container.InjectionProcessing;
-
+        public bool InjectionProcessing => ContextInternal.RawContainer.InjectionProcessing;
 
 
         private void Initialize()
         {
-            Context = new Context();
-            Context.Container.Bind<IContextArg>().FromInstance(new NullContextArg());
+            ContextInternal = new ContextInternal();
+            ContextInternal.RawContainer.Bind<IContextArg>().FromInstance(new NullContextArg());
             var go = new GameObject("ProjectContext");
             DontDestroyOnLoad(go);
             SceneContextLoader = go.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
             GameObjectContextLoader = go.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
-            Context.Container.Bind<IContext>().FromInstance(this);
+            ContextInternal.RawContainer.Bind<IContext>().FromInstance(this);
             Context.Install(InstallerScriptableObjects, new NullContextArg());
             InstallPrefabs(InstallerPrefabs);
-            Context.Container.GenerateResolvers().Forget();
+            ContextInternal.RawContainer.GenerateResolvers().Forget();
         }
 
         private void InstallPrefabs(List<BindingInstallerComponent> installerPrefabs)
@@ -58,7 +59,7 @@ namespace Doinject
             {
                 var installer = Instantiate(installerPrefab);
                 DontDestroyOnLoad(installer.gameObject);
-                installer.Install(Context.Container, new NullContextArg());
+                installer.Install(ContextInternal.RawContainer, new NullContextArg());
             }
         }
 
@@ -67,8 +68,8 @@ namespace Doinject
 
         public void Dispose()
         {
-            Context.DisposeAsync().Forget();
-            Context = null;
+            ContextInternal.DisposeAsync().Forget();
+            ContextInternal = null;
         }
     }
 }

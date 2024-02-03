@@ -93,8 +93,8 @@ namespace Doinject.Context
         private void OnTreeItemSelected(IEnumerable<object> selection)
         {
             selectedNode = selection.First() as ContextNode;
-            bindingDataSource = selectedNode.Context.Container.ReadOnlyBindings.ToList();
-            instanceDataSource = selectedNode.Context.Container.ReadOnlyInstanceMap.ToList();
+            bindingDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings.ToList();
+            instanceDataSource = selectedNode.Context.RawContainer.ReadOnlyInstanceMap.ToList();
             bindingsView.itemsSource = bindingDataSource;
             instancesView.itemsSource = instanceDataSource;
             bindingsView.Rebuild();

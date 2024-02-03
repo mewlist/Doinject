@@ -20,8 +20,10 @@ namespace Doinject
 
 
         public override Scene Scene => gameObject.scene;
+
         private bool isReverseLoaded;
         public override bool IsReverseLoaded => isReverseLoaded;
+
         public bool Loaded { get; private set; }
 
         private SceneContextLoader ownerSceneContextLoader;
@@ -73,8 +75,8 @@ namespace Doinject
         {
             ParentContext = parentContext;
 
-            Context = new Context(scene, parentContext?.Context);
-            Context.Container.Bind<IContextArg>().FromInstance(Arg);
+            ContextInternal = new ContextInternal(scene, parentContext?.Context);
+            ContextInternal.RawContainer.Bind<IContextArg>().FromInstance(Arg);
 
             if (GetComponentsUnderContext<SceneContext>().Any(x => x != this))
                 throw new InvalidOperationException("There are multiple SceneContexts in the same scene.");
@@ -94,10 +96,10 @@ namespace Doinject
             var injectableComponents
                 = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
 
-            await Context.Container.GenerateResolvers();
+            await ContextInternal.RawContainer.GenerateResolvers();
 
             await Task.WhenAll(injectableComponents.Select(x
-                => Context.Container.InjectIntoAsync(x).AsTask()));
+                => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
 
             while (InjectionProcessing)
             {
@@ -119,9 +121,9 @@ namespace Doinject
 
         private void InstallBindings()
         {
-            Context.Container.Bind<IContext>().FromInstance(this);
-            Context.Container.BindFromInstance(SceneContextLoader);
-            Context.Container.BindFromInstance(GameObjectContextLoader);
+            ContextInternal.RawContainer.Bind<IContext>().FromInstance(this);
+            ContextInternal.RawContainer.BindFromInstance(SceneContextLoader);
+            ContextInternal.RawContainer.BindFromInstance(GameObjectContextLoader);
             var installers = GetComponentsUnderContext<IBindingInstaller>().ToList();
             Context.Install(installers, Arg);
         }

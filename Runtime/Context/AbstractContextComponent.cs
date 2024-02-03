@@ -7,16 +7,18 @@ namespace Doinject
 {
     public abstract class AbstractContextComponent : MonoBehaviour, IContext
     {
+        internal ContextInternal ContextInternal { get; set; }
+
         protected TaskQueue TaskQueue { get; } = new(TaskQueueLimitType.SwapLast, 2);
         protected IContextArg Arg { get; private set; } = new NullContextArg();
 
 
         public abstract Scene Scene { get; }
-        public Context Context { get; protected set; }
+        public Context Context => ContextInternal;
         public SceneContextLoader SceneContextLoader { get; protected set; }
         public GameObjectContextLoader GameObjectContextLoader { get; protected set; }
         public abstract bool IsReverseLoaded { get; }
-        public bool InjectionProcessing => Context.Container.InjectionProcessing;
+        public bool InjectionProcessing => Context.InjectionProcessing;
 
 
         protected abstract IEnumerable<T> GetComponentsUnderContext<T>();

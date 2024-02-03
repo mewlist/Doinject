@@ -117,12 +117,11 @@ namespace Doinject.Tests
         {
             container.BindTransient<InjectedObject>();
             var instance = await container.ResolveAsync<InjectedObject>();
-            Assert.That(instance.OnInjectedCalled, Is.True);
-            Assert.That(instance.OnPostInjectedCalled, Is.False);
+            Assert.That(instance.OnInjectedCalled, Is.False);
             while (container.InjectionProcessing)
                 await TaskHelper.NextFrame();
             await TaskHelper.NextFrame();
-            Assert.That(instance.OnPostInjectedCalled, Is.True);
+            Assert.That(instance.OnInjectedCalled, Is.True);
         }
     }
 }

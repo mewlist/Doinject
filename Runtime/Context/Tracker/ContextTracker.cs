@@ -1,6 +1,6 @@
 ﻿namespace Doinject
 {
-    public class ContextTracker
+    internal class ContextTracker
     {
         private static ContextTracker instance;
         public static ContextTracker Instance => instance ??= new ContextTracker();
@@ -10,13 +10,13 @@
 
         private int idCounter = 0;
 
-        public void Add(Context context)
+        public void Add(ContextInternal context)
         {
             Root.Add(context);
             Dirty = true;
         }
 
-        public void Remove(Context context)
+        public void Remove(ContextInternal context)
         {
             Root.Remove(context);
             Dirty = true;
