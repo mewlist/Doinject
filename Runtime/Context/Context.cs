@@ -8,48 +8,47 @@ namespace Doinject
 {
     public class Context : IAsyncDisposable
     {
+        protected readonly DIContainer container;
+
         public int Id { get; } = ContextTracker.Instance.GetNextId();
         public Scene Scene { get; }
         public GameObject GameObjectInstance { get; }
-        public DIContainer Container { get; }
+        public IReadOnlyDIContainer Container => container;
         public Context Parent { get; }
+        public bool InjectionProcessing => container.InjectionProcessing;
 
-        public Context()
+        protected Context()
         {
             Scene = default;
             Parent = null;
-            Container = new DIContainer(Parent?.Container, Scene);
-            ContextTracker.Instance.Add(this);
+            container = new DIContainer(Parent?.container, Scene);
         }
 
-        public Context(Scene scene, Context parentContext)
+        protected Context(Scene scene, Context parentContext)
         {
             Scene = scene;
             Parent = parentContext;
-            Container = new DIContainer(Parent?.Container, Scene);
-            ContextTracker.Instance.Add(this);
+            container = new DIContainer(Parent?.container, Scene);
         }
 
-        public Context(GameObject gameObjectInstance, Context parentContext)
+        protected Context(GameObject gameObjectInstance, Context parentContext)
         {
             Scene = parentContext?.Scene ?? gameObjectInstance.scene;
             GameObjectInstance = gameObjectInstance;
             Parent = parentContext;
-            Container = new DIContainer(Parent?.Container, Scene);
-            ContextTracker.Instance.Add(this);
+            container = new DIContainer(Parent?.container, Scene);
         }
 
 
         public void Install(IEnumerable<IBindingInstaller> targets, IContextArg contextArg)
         {
             foreach (var component in targets)
-                component.Install(Container, contextArg);
+                component.Install(container, contextArg);
         }
 
-        public async ValueTask DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
-            ContextTracker.Instance.Remove(this);
-            await Container.DisposeAsync();
+            await container.DisposeAsync();
         }
 
         public override string ToString()

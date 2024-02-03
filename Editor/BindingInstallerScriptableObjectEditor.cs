@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
-namespace Doinject.Context
+namespace Doinject
 {
     [CustomEditor(typeof(BindingInstallerScriptableObject))]
     public class BindingInstallerScriptableObjectEditor : Editor

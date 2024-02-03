@@ -307,30 +307,16 @@ namespace Doinject
                 }
             }
 
-            var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
-            await InvokeCallback(target, onInjectedCallback);
-
             InjectionProcessingCount--;
             if (!InjectionProcessing)
-            {
                 InjectionProcessingCompletionSource.TrySetResult();
-                TryCallPostInjectedCallback(target, methods, completionSource: null).Forget();
-            }
-            else
-            {
-                TryCallPostInjectedCallback(target, methods, InjectionProcessingCompletionSource).Forget();
-            }
-        }
 
-        private async Task TryCallPostInjectedCallback<T>(
-            T target,
-            IEnumerable<MethodInfo> methods,
-            AwaitableCompletionSource completionSource)
-        {
-            if (completionSource is not null)
-                await completionSource.Awaitable;
-            var onPostInjected = methods.FirstOrDefault(x => x.Name == "OnPostInjected" && x.GetParameters().Length == 0);
-            await InvokeCallback(target, onPostInjected);
+            var onInjectedCallback = methods.FirstOrDefault(x => x.Name == "OnInjected" && x.GetParameters().Length == 0);
+            InvokeCallback(
+                target,
+                onInjectedCallback,
+                completionSource: InjectionProcessing ? InjectionProcessingCompletionSource : null)
+                .Forget();
         }
 
         private async ValueTask DoInject<T>(T target, MethodInfo methodInfo, object[] args,
@@ -353,27 +339,30 @@ namespace Doinject
             }
         }
 
-        private async ValueTask InvokeCallback<T>(T target, MethodInfo callback)
+        private async ValueTask InvokeCallback<T>(T target, MethodInfo callback, AwaitableCompletionSource completionSource)
         {
-            if (callback is not null)
-            {
-                await TaskHelper.NextFrame();
-                if (CancellationTokenSource.IsCancellationRequested) return;
+            if (callback is null) return;
 
-                if (callback.ReturnType == typeof(Task))
-                {
-                    var task = (Task)callback.Invoke(target, Array.Empty<object>());
-                    await task;
-                }
-                else if (callback.ReturnType == typeof(ValueTask))
-                {
-                    var task = (ValueTask)callback.Invoke(target, Array.Empty<object>());
-                    await task;
-                }
-                else
-                {
-                    callback.Invoke(target, Array.Empty<object>());
-                }
+            if (completionSource is not null)
+                await completionSource.Awaitable;
+            else
+                await TaskHelper.NextFrame();
+
+            if (CancellationTokenSource.IsCancellationRequested) return;
+
+            if (callback.ReturnType == typeof(Task))
+            {
+                var task = (Task)callback.Invoke(target, Array.Empty<object>());
+                await task;
+            }
+            else if (callback.ReturnType == typeof(ValueTask))
+            {
+                var task = (ValueTask)callback.Invoke(target, Array.Empty<object>());
+                await task;
+            }
+            else
+            {
+                callback.Invoke(target, Array.Empty<object>());
             }
         }
 

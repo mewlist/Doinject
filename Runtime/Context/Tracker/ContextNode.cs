@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace Doinject
 {
-    public class ContextNode
+    internal class ContextNode
     {
         public List<ContextNode> Children { get; } = new();
-        public Context Context { get; private set; }
+        public ContextInternal Context { get; private set; }
 
-        public void Add(Context context)
+        public void Add(ContextInternal context)
         {
             var node = Find(context);
             if (node is not null) throw new Exception("Already added");

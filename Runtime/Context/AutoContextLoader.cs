@@ -14,13 +14,10 @@ namespace Doinject
 
         [Inject]
         // ReSharper disable once UnusedMember.Global
-        public void Construct(IContext context)
+        public async Task Construct(IContext context)
         {
             Context = context;
-        }
 
-        public async Task OnInjected()
-        {
             foreach (var gameObjectContextPrefab in gameObjectContextPrefabs)
                 await Context.GameObjectContextLoader.LoadAsync(gameObjectContextPrefab);
 

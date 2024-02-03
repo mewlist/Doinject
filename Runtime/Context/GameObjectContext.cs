@@ -13,7 +13,6 @@ namespace Doinject
         public override bool IsReverseLoaded => false;
 
 
-
         protected override async void Awake()
         {
             base.Awake();
@@ -52,8 +51,8 @@ namespace Doinject
         {
             ParentContext = parentContext;
 
-            Context = new Context(gameObject, ParentContext?.Context);
-            Context.Container.Bind<IContextArg>().FromInstance(Arg);
+            ContextInternal = new ContextInternal(gameObject, ParentContext?.Context);
+            ContextInternal.RawContainer.Bind<IContextArg>().FromInstance(Arg);
 
             SceneContextLoader = gameObject.AddComponent<SceneContextLoader>();
             SceneContextLoader.SetContext(this);
@@ -68,10 +67,10 @@ namespace Doinject
             var injectableComponents
                 = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
 
-            await Context.Container.GenerateResolvers();
+            await ContextInternal.RawContainer.GenerateResolvers();
 
             await Task.WhenAll(injectableComponents.Select(x
-                => Context.Container.InjectIntoAsync(x).AsTask()));
+                => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
         }
 
         private async Task Shutdown()
@@ -83,9 +82,9 @@ namespace Doinject
 
         private void InstallBindings()
         {
-            Context.Container.Bind<IContext>().FromInstance(this);
-            Context.Container.BindFromInstance(SceneContextLoader);
-            Context.Container.BindFromInstance(GameObjectContextLoader);
+            ContextInternal.RawContainer.Bind<IContext>().FromInstance(this);
+            ContextInternal.RawContainer.BindFromInstance(SceneContextLoader);
+            ContextInternal.RawContainer.BindFromInstance(GameObjectContextLoader);
             var installers = GetComponentsUnderContext<IBindingInstaller>();
             Context.Install(installers, Arg);
         }

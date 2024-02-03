@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Doinject.Context
+namespace Doinject
 {
     [CustomEditor(typeof(BindingInstallerComponent))]
     public class BindingInstallerComponentEditor : Editor
