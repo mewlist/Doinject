@@ -20,7 +20,6 @@ namespace Doinject
         public abstract bool IsReverseLoaded { get; }
         public bool InjectionProcessing => Context.InjectProcessing;
 
-
         protected abstract IEnumerable<T> GetComponentsUnderContext<T>();
 
 

@@ -12,6 +12,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
+#if USE_UNITASK
+using Cysharp.Threading.Tasks;
+#endif
+
 namespace Doinject
 {
     public class DIContainer : IReadOnlyDIContainer, IAsyncDisposable
@@ -300,20 +304,12 @@ namespace Doinject
             ScopedInstance[] scopedInstances)
         {
             var parameters = await ResolveParameters(target.GetType(), methodInfo.GetParameters(), args, scopedInstances);
-            if (methodInfo.ReturnType == typeof(Task))
-            {
-                var task = (Task)methodInfo.Invoke(target, parameters);
-                await task;
-            }
-            else if (methodInfo.ReturnType == typeof(ValueTask))
-            {
-                var task = (ValueTask)methodInfo.Invoke(target, parameters);
-                await task;
-            }
-            else
-            {
-                methodInfo.Invoke(target, parameters);
-            }
+            if (methodInfo.IsTask()) await (Task)methodInfo.Invoke(target, parameters);
+            else if (methodInfo.IsValueTask()) await (ValueTask)methodInfo.Invoke(target, parameters);
+#if USE_UNITASK
+            else if (methodInfo.IsUniTask()) await (UniTask)methodInfo.Invoke(target, parameters);
+#endif
+            else methodInfo.Invoke(target, parameters);
         }
 
         private async Task InvokeInjectCallback<T>(T target, IEnumerable<MethodInfo> methods, object[] args, ScopedInstance[] scopedInstances)
@@ -370,20 +366,12 @@ namespace Doinject
 
             if (CancellationTokenSource.IsCancellationRequested) return;
 
-            if (callback.ReturnType == typeof(Task))
-            {
-                var task = (Task)callback.Invoke(target, Array.Empty<object>());
-                await task;
-            }
-            else if (callback.ReturnType == typeof(ValueTask))
-            {
-                var task = (ValueTask)callback.Invoke(target, Array.Empty<object>());
-                await task;
-            }
-            else
-            {
-                callback.Invoke(target, Array.Empty<object>());
-            }
+            if (callback.IsTask()) await (Task)callback.Invoke(target, Array.Empty<object>());
+            else if (callback.IsValueTask()) await (ValueTask)callback.Invoke(target, Array.Empty<object>());
+#if USE_UNITASK
+            else if (callback.IsUniTask()) await (UniTask)callback.Invoke(target, Array.Empty<object>());
+#endif
+            else callback.Invoke(target, Array.Empty<object>());
         }
 
         private async ValueTask<object[]> ResolveParameters(
