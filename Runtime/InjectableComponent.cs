@@ -21,7 +21,7 @@ namespace Doinject
             var context = FindParentContext();
             foreach (var component in GetComponents(typeof(IInjectableComponent)).Cast<IInjectableComponent>())
             {
-                if ((InjectableComponent)component == this) continue;
+                if (component == this as IInjectableComponent) continue;
                 await context.Context.Container.InjectIntoAsync(component);
             }
         }
