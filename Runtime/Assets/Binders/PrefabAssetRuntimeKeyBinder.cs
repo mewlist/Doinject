@@ -1,24 +1,23 @@
 ﻿#if USE_DI_ASSETS
 using System;
-using Mew.Core.Assets;
 using UnityEngine;
 
 namespace Doinject.Assets
 {
-    public struct PrefabAssetReferenceBinder<T> : IBinder
+    public struct PrefabAssetRuntimeKeyBinder<T> : IBinder
     {
         private readonly BinderContext context;
-        private readonly PrefabAssetReference prefabAssetReference;
+        private readonly object prefabAssetRuntimeKey;
         private object[] args;
 
         private Transform under;
         private bool worldPositionStays;
         private CacheStrategy cacheStrategy;
 
-        public PrefabAssetReferenceBinder(BinderContext context, PrefabAssetReference prefabAssetReference)
+        public PrefabAssetRuntimeKeyBinder(BinderContext context, object prefabAssetRuntimeKey)
         {
             this.context = context;
-            this.prefabAssetReference = prefabAssetReference;
+            this.prefabAssetRuntimeKey = prefabAssetRuntimeKey;
             this.args = null;
             this.under = default;
             this.worldPositionStays = true;
@@ -28,10 +27,10 @@ namespace Doinject.Assets
 
         public IInternalResolver ToResolver(InstanceBag instanceBag)
         {
-            return new PrefabAssetReferenceResolver<T>(prefabAssetReference, args, under, worldPositionStays, cacheStrategy, instanceBag);
+            return new PrefabAssetReferenceResolver<T>(prefabAssetRuntimeKey, args, under, worldPositionStays, cacheStrategy, instanceBag);
         }
 
-        public PrefabAssetReferenceBinder<T> Args(params object[] args)
+        public PrefabAssetRuntimeKeyBinder<T> Args(params object[] args)
         {
             var clone = this;
             clone.args = args;
@@ -39,17 +38,17 @@ namespace Doinject.Assets
             return clone;
         }
 
-        public PrefabAssetReferenceBinder<T> UnderSceneRoot()
+        public PrefabAssetRuntimeKeyBinder<T> UnderSceneRoot()
         {
             under = null;
             context.Update(this);
             return this;
         }
 
-        public PrefabAssetReferenceBinder<T> Under(Transform targetTransform)
+        public PrefabAssetRuntimeKeyBinder<T> Under(Transform targetTransform)
             => Under(targetTransform, worldPositionStays: true);
 
-        public PrefabAssetReferenceBinder<T> Under(Transform targetTransform, bool worldPositionStays)
+        public PrefabAssetRuntimeKeyBinder<T> Under(Transform targetTransform, bool worldPositionStays)
         {
             under = targetTransform;
             this.worldPositionStays = worldPositionStays;
@@ -57,7 +56,7 @@ namespace Doinject.Assets
             return this;
         }
 
-        public PrefabAssetReferenceBinder<T> AsTransient()
+        public PrefabAssetRuntimeKeyBinder<T> AsTransient()
         {
             var clone = this;
             clone.cacheStrategy = CacheStrategy.Transient;
@@ -65,7 +64,7 @@ namespace Doinject.Assets
             return clone;
         }
 
-        public PrefabAssetReferenceBinder<T> AsCached()
+        public PrefabAssetRuntimeKeyBinder<T> AsCached()
         {
             var clone = this;
             clone.cacheStrategy = CacheStrategy.Cached;
@@ -73,7 +72,7 @@ namespace Doinject.Assets
             return clone;
         }
 
-        public PrefabAssetReferenceBinder<T> AsSingleton()
+        public PrefabAssetRuntimeKeyBinder<T> AsSingleton()
         {
             var clone = this;
             clone.cacheStrategy = CacheStrategy.Singleton;

@@ -4,22 +4,22 @@ using UnityEngine.AddressableAssets;
 
 namespace Doinject.Assets
 {
-    public struct AssetReferenceBinder<T> : IBinder
-        where T: Object
+    public struct AssetRuntimeKeyBinder<T> : IBinder
+        where T : Object
     {
         private readonly BinderContext context;
-        private AssetReference AssetReference { get; }
+        private object RuntimeKey { get; }
 
-        public AssetReferenceBinder(BinderContext context, AssetReference assetReference)
+        public AssetRuntimeKeyBinder(BinderContext context, object runtimeKey)
         {
             this.context = context;
-            AssetReference = assetReference;
+            RuntimeKey = runtimeKey;
             context.Update(this);
         }
 
         public IInternalResolver ToResolver(InstanceBag instanceBag)
         {
-            return new AssetReferenceResolver<T>(AssetReference);
+            return new AddressableAssetResolver<T>(RuntimeKey);
         }
     }
 }

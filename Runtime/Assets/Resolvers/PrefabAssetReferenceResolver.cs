@@ -11,12 +11,12 @@ namespace Doinject.Assets
 {
     public class PrefabAssetReferenceResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
     {
-        private PrefabAssetReference PrefabAssetReference { get; }
+        private object PrefabAssetRuntimeKey { get; }
         private Transform Under { get; }
         private bool WorldPositionStays { get; }
         private GameObject PrefabInstance { get; set; }
         private PrefabResolver<T> PrefabResolver { get; set; }
-        private AssetReferenceResolver<GameObject> AssetReferenceResolver { get; set; }
+        private AddressableAssetResolver<GameObject> AddressableAssetResolver { get; set; }
         private object[] Args { get; }
         private TaskQueue TaskQueue { get; } = new();
 
@@ -25,7 +25,7 @@ namespace Doinject.Assets
         public override string StrategyName => CacheStrategy.ToString();
         public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
-        public PrefabAssetReferenceResolver(PrefabAssetReference prefabAssetReference,
+        public PrefabAssetReferenceResolver(object prefabAssetRuntimeKey,
             object[] args,
             Transform under,
             bool worldPositionStays,
@@ -33,7 +33,7 @@ namespace Doinject.Assets
             InstanceBag instanceBag)
             : base(instanceBag)
         {
-            PrefabAssetReference = prefabAssetReference;
+            PrefabAssetRuntimeKey = prefabAssetRuntimeKey;
             Args = args;
             Under = under;
             WorldPositionStays = worldPositionStays;
@@ -73,10 +73,10 @@ namespace Doinject.Assets
 
         private async ValueTask<T> LoadAsync(IReadOnlyDIContainer container, object[] args)
         {
-            if (AssetReferenceResolver is null)
+            if (AddressableAssetResolver is null)
             {
-                AssetReferenceResolver = new AssetReferenceResolver<GameObject>(PrefabAssetReference);
-                PrefabInstance = await AssetReferenceResolver.ResolveAsync(container);
+                AddressableAssetResolver = new AddressableAssetResolver<GameObject>(PrefabAssetRuntimeKey);
+                PrefabInstance = await AddressableAssetResolver.ResolveAsync(container);
             }
 
             if (PrefabResolver is null)
@@ -97,10 +97,10 @@ namespace Doinject.Assets
         public override async ValueTask DisposeAsync()
         {
             TaskQueue.Dispose();
-            if (AssetReferenceResolver != null)
+            if (AddressableAssetResolver != null)
             {
-                await AssetReferenceResolver.DisposeAsync();
-                AssetReferenceResolver = null;
+                await AddressableAssetResolver.DisposeAsync();
+                AddressableAssetResolver = null;
             }
 
             if (PrefabResolver != null)

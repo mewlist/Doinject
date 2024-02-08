@@ -7,11 +7,11 @@ using UnityEngine.AddressableAssets;
 
 namespace Doinject.Assets
 {
-    public sealed class AssetReferenceResolver<T> : IInternalResolver<T>
+    public sealed class AddressableAssetResolver<T> : IInternalResolver<T>
         where T: Object
     {
         private TargetTypeInfo TargetType { get; }
-        private AssetReference AssetReference { get; }
+        private object RuntimeKey { get; }
         private AssetLoader AssetLoader { get; } = new();
         private T Instance { get; set; }
         private TaskQueue TaskQueue { get; } = new();
@@ -21,10 +21,10 @@ namespace Doinject.Assets
         public string StrategyName => "Singleton";
         public int InstanceCount => Instance is null ? 0 : 1;
 
-        public AssetReferenceResolver(AssetReference assetReference)
+        public AddressableAssetResolver(object runtimeKey)
         {
             TargetType = new TargetTypeInfo(typeof(T));
-            AssetReference = assetReference;
+            RuntimeKey = runtimeKey;
             TaskQueue.Start();
         }
 
@@ -46,7 +46,7 @@ namespace Doinject.Assets
             await TaskQueue.EnqueueAsync(async ct =>
             {
                 if (Instance is not null) return;
-                instance = await AssetLoader.LoadAsync<T>(AssetReference, ct);
+                instance = await AssetLoader.LoadAsync<T>(RuntimeKey, ct);
             }).OnException(Debug.LogException);
             return instance;
         }
