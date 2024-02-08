@@ -9,26 +9,48 @@ namespace Doinject.Assets
 {
     public static class DIContainerExtension
     {
-        public static PrefabAssetReferenceBinder<T> BindPrefabAssetReference<T>(this DIContainer container, PrefabAssetReference prefabAssetReference)
+        public static PrefabAssetRuntimeKeyBinder<T> BindPrefabAssetReference<T>(this DIContainer container, PrefabAssetReference prefabAssetReference)
             where T: Component
         {
             var targetType = typeof(T);
             var targetTypeInfo = new TargetTypeInfo(targetType);
             var binderContext = new BinderContext();
             ValidatePrefabAssetReference<T>(prefabAssetReference);
-            var binder = new PrefabAssetReferenceBinder<T>(binderContext, prefabAssetReference);
+            var binder = new PrefabAssetRuntimeKeyBinder<T>(binderContext, prefabAssetReference);
             container.BinderMap[targetTypeInfo] = binderContext;
             return binder;
         }
 
-        public static AssetReferenceBinder<T> BindAssetReference<T>(this DIContainer container, AssetReference assetReference)
+        public static PrefabAssetRuntimeKeyBinder<T> BindPrefabAssetRuntimeKey<T>(this DIContainer container, object runtimeKey)
+            where T: Component
+        {
+            var targetType = typeof(T);
+            var targetTypeInfo = new TargetTypeInfo(targetType);
+            var binderContext = new BinderContext();
+            var binder = new PrefabAssetRuntimeKeyBinder<T>(binderContext, runtimeKey);
+            container.BinderMap[targetTypeInfo] = binderContext;
+            return binder;
+        }
+
+        public static AssetRuntimeKeyBinder<T> BindAssetReference<T>(this DIContainer container, AssetReference assetReference)
             where T: Object
         {
             var targetType = typeof(T);
             var targetTypeInfo = new TargetTypeInfo(targetType);
             var binderContext = new BinderContext();
             ValidateAssetReference<T>(assetReference);
-            var binder = new AssetReferenceBinder<T>(binderContext, assetReference);
+            var binder = new AssetRuntimeKeyBinder<T>(binderContext, assetReference);
+            container.BinderMap[targetTypeInfo] = binderContext;
+            return binder;
+        }
+
+        public static AssetRuntimeKeyBinder<T> BindAssetRuntimeKey<T>(this DIContainer container, object runTimeKey)
+            where T: Object
+        {
+            var targetType = typeof(T);
+            var targetTypeInfo = new TargetTypeInfo(targetType);
+            var binderContext = new BinderContext();
+            var binder = new AssetRuntimeKeyBinder<T>(binderContext, runTimeKey);
             container.BinderMap[targetTypeInfo] = binderContext;
             return binder;
         }

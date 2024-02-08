@@ -136,26 +136,39 @@ SomeComponent がプレハブのルートオブジェクトにアタッチされ
 
 ### Addressable Asset からロード {id="load-from-addressable-asset"}
 
+```AsserReference``` は Addressable Asset System より提供される型で、アセットの参照を表します。
+
 ```C#
 AssetReference assetReference = ...;
 container.BindAssetReference<SomeAddressalbesObject>(assetReference);
 ```
+また、```BindAssetRuntimeKey``` を使うことで ```RuntimeKey``` を直接指定することもできます。
 
-AsserReference は Addressable Asset System で提供される型で、アセットの参照を表します。
+```C#
+string path_or_guid_of_asset = ...;
+container.BindAssetRuntimeKey<SomeAddressalbesObject>(path_or_guid_of_asset);
+```
 
 > ScriptableObject などのバインドに使うことを想定しています。
 {style="note"}
 
 ### Addressables Asset からプレハブをロードしてインスタンスを生成
 
+```BindPrefabAssetReference``` を使うことで、Addressable Asset System からプレハブをロードしてインスタンスを生成できます。
+```PrefabAssetReference``` は Doinject が用意している型で、プレハブを参照するための型です。
+SomeComponent がプレハブのルートオブジェクトにアタッチされている必要があります。
+
 ```C#
 PrefabAssetReference prefabAssetReference = ...;
 container.BindPrefabAssetReference<SomeComponent>(prefabAssetReference);
 ```
 
-PrefabAssetReference は Doinject が用意している型で、プレハブを参照するための型です。
-必ず、PrefabAssetReference を使ってバインディングする必要があります。
-また、SomeComponent がプレハブのルートオブジェクトにアタッチされている必要があります。
+また、```BindPrefabAssetRuntimeKey``` を使うことで ```RuntimeKey``` を直接指定することもできます。
+
+```C#
+string path_or_guid_of_prefab = ...;
+container.BindPrefabAssetRuntimeKey<SomeComponent>(path_or_guid_of_prefab);
+```
 
 >　既定では、コンテクストの属するシーンのヒエラルキのトップレベルの位置に、対象のプレハブがインスタンス化されます。
 {style="note"}
