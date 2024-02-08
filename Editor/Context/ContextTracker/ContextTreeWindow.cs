@@ -1,24 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using TreeView = UnityEngine.UIElements.TreeView;
 
 namespace Doinject.Context
 {
+    internal struct Item
+    {
+        public TargetTypeInfo Type { get; set; }
+        public IInternalResolver Resolver { get; set; }
+    }
+
     public class ContextTreeWindow : EditorWindow
     {
         [SerializeField]
         protected VisualTreeAsset uxml;
+        [SerializeField]
+        protected VisualTreeAsset itemUXML;
 
         private TreeView treeView;
-        private ListView bindingsView;
-        private ListView instancesView;
-        private TabView tabView;
+        private MultiColumnTreeView instancesView;
         private ContextNode selectedNode;
-        private List<KeyValuePair<TargetTypeInfo, ConcurrentObjectBag>> instanceDataSource;
         private List<KeyValuePair<TargetTypeInfo, IInternalResolver>> bindingDataSource;
+        private List<TreeViewItemData<Item>> treeViewDataSource;
 
         [MenuItem("Window/Doinject/DI Context Tree")]
         public static void Summon()
@@ -41,9 +49,7 @@ namespace Doinject.Context
         {
             uxml.CloneTree(rootVisualElement);
             treeView = rootVisualElement.Q<TreeView>();
-            bindingsView = rootVisualElement.Q<ListView>("Bindings");
-            instancesView = rootVisualElement.Q<ListView>("Instances");
-            tabView = rootVisualElement.Q<TabView>();
+            instancesView = rootVisualElement.Q<MultiColumnTreeView>("Instances");
 
             treeView.SetRootItems(BuildTree(ContextTracker.Instance.Root));
             treeView.makeItem = () => new Label();
@@ -51,29 +57,36 @@ namespace Doinject.Context
                 (element as Label).text = treeView.GetItemDataForIndex<ContextNode>(index).Context.ToString();
             treeView.selectionChanged += OnTreeItemSelected;
 
-            bindingsView.makeItem = () => new Label();
-            bindingsView.bindItem = (VisualElement element, int index) =>
-                (element as Label).text = $"{bindingDataSource[index].Key.Type.Name} => {ResolverToString(bindingDataSource[index].Value)}";
-            instancesView.makeItem = () => new Label();
-            instancesView.bindItem = (VisualElement element, int index) =>
-                (element as Label).text = $"{instanceDataSource[index].Key.Type.Name} x {instanceDataSource[index].Value.Count}";
+            var typeColumn = instancesView.columns["Type"];
+            var resolverColumn = instancesView.columns["Resolver"];
+            var strategyColumn = instancesView.columns["Strategy"];
+            var instanceCountColumn = instancesView.columns["InstanceCount"];
+            instancesView.SetRootItems(treeViewDataSource);
+            typeColumn.makeCell = itemUXML.CloneTree;
+            resolverColumn.makeCell = itemUXML.CloneTree;
+            strategyColumn.makeCell = itemUXML.CloneTree;
+            instanceCountColumn.makeCell = itemUXML.CloneTree;
+            typeColumn.bindCell = (e, i)
+                => e.Q<Label>().text = GenericTypeToString(instancesView.GetItemDataForIndex<Item>(i).Type.Type);
+            resolverColumn.bindCell = (e, i)
+                => e.Q<Label>().text = instancesView.GetItemDataForIndex<Item>(i).Resolver.ShortName;
+            strategyColumn.bindCell = (e, i)
+                => e.Q<Label>().text = instancesView.GetItemDataForIndex<Item>(i).Resolver.StrategyName;
+            instanceCountColumn.bindCell = (e, i)
+                => e.Q<Label>().text = instancesView.GetItemDataForIndex<Item>(i).Resolver.InstanceCount.ToString();
+        }
 
-            bindingsView.visible = true;
-            instancesView.visible = false;
-
-            tabView.activeTabChanged += (from, to) =>
-            {
-                if (to.tabIndex == 0)
-                {
-                    bindingsView.visible = true;
-                    instancesView.visible = false;
-                }
-                else
-                {
-                    bindingsView.visible = false;
-                    instancesView.visible = true;
-                }
-            };
+        private string GenericTypeToString(Type type)
+        {
+            var resolverName = type.Name;
+            if (resolverName.Contains("`"))
+                resolverName = resolverName.Split("`")[0];
+            var result = $"{resolverName}";
+            var types = type.GenericTypeArguments
+                .Select(x => x.Name);
+            if (types.Any())
+                result += $"<{string.Join(", ", types)}>";
+            return result;
         }
 
         private string ResolverToString(IInternalResolver resolver)
@@ -94,10 +107,16 @@ namespace Doinject.Context
         {
             selectedNode = selection.First() as ContextNode;
             bindingDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings.ToList();
-            instanceDataSource = selectedNode.Context.RawContainer.ReadOnlyInstanceMap.ToList();
-            bindingsView.itemsSource = bindingDataSource;
-            instancesView.itemsSource = instanceDataSource;
-            bindingsView.Rebuild();
+            var id = 0;
+            treeViewDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings
+                .Select(x =>
+                    new TreeViewItemData<Item>(id++,
+                        new Item {
+                            Type = x.Key,
+                            Resolver = x.Value,
+                        }))
+                .ToList();
+            instancesView.SetRootItems(treeViewDataSource);
             instancesView.Rebuild();
         }
 

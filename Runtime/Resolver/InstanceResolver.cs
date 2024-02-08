@@ -8,6 +8,9 @@ namespace Doinject
 
         public bool Injected { get; set; }
         public string Name => $"{GetType().Name}<{typeof(T).Name}>";
+        public string ShortName => "Instance";
+        public string StrategyName => "Singleton";
+        public int InstanceCount => 1;
 
         public InstanceResolver(T instance)
         {

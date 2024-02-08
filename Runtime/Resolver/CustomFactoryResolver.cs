@@ -11,6 +11,9 @@ namespace Doinject
         private object[] Args { get; }
 
         public TargetTypeInfo FactoryType { get; }
+        public override string ShortName => "CustomFactory";
+        public override string StrategyName => "Cached";
+        public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
         public CustomFactoryResolver(InstanceBag instanceBag, object[] args) : base(instanceBag)
         {

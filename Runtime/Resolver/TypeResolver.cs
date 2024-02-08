@@ -12,6 +12,9 @@ namespace Doinject
         private object[] Args { get; }
 
         public CacheStrategy CacheStrategy { get; }
+        public override string ShortName => "Type";
+        public override string StrategyName => CacheStrategy.ToString();
+        public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
         public TypeResolver(object[] args, CacheStrategy cacheStrategy, InstanceBag instanceBag)
             : base(instanceBag)

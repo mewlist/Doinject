@@ -1,16 +1,18 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:TwoPaneSplitView fixed-pane-index="0" fixed-pane-initial-size="200" orientation="Vertical" fixed-pane-initial-dimension="254" style="align-items: flex-end; justify-content: flex-end;">
         <ui:VisualElement style="flex-grow: 1; align-items: flex-start; justify-content: flex-end;">
-            <ui:TreeView virtualization-method="DynamicHeight" style="height: 123px;" auto-expand="true"/>
+            <ui:TreeView virtualization-method="DynamicHeight" auto-expand="true" style="height: 123px;" />
         </ui:VisualElement>
         <ui:VisualElement name="VisualElement" style="flex-grow: 1; align-items: stretch; flex-direction: column; justify-content: flex-start;">
-            <ui:TabView style="width: 100%; height: 26px;">
-                <ui:Tab label="Bindings" />
-                <ui:Tab label="Instances" tabindex="1" />
-            </ui:TabView>
             <ui:VisualElement style="flex-grow: 1;">
-                <ui:ListView virtualization-method="DynamicHeight" show-border="false" name="Bindings" style="position: absolute; top: 0; bottom: 0;" />
-                <ui:ListView virtualization-method="DynamicHeight" show-border="false" name="Instances" style="position: absolute; top: 0; bottom: 0;" />
+                <ui:MultiColumnTreeView virtualization-method="DynamicHeight" show-border="false" name="Instances" style="position: absolute; top: 0; bottom: 0;">
+                    <ui:Columns primary-column-name="Type">
+                        <ui:Column name="Type" title="Type" min-width="200px" />
+                        <ui:Column name="Resolver" title="Resolver" width="100px" />
+                        <ui:Column name="Strategy" title="Strategy" width="100px" />
+                        <ui:Column name="InstanceCount" title="InstanceCount" width="100px" />
+                    </ui:Columns>
+                </ui:MultiColumnTreeView>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:TwoPaneSplitView>

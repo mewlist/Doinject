@@ -7,6 +7,9 @@ namespace Doinject
         protected InstanceBag InstanceBag { get; }
         protected TargetTypeInfo TargetType { get; }
         public virtual string Name => $"{GetType().Name}<{typeof(T).Name}>";
+        public abstract string ShortName { get; }
+        public abstract string StrategyName { get; }
+        public abstract int InstanceCount { get; }
 
         protected AbstractInternalResolver(InstanceBag instanceBag)
         {

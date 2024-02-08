@@ -21,6 +21,9 @@ namespace Doinject.Assets
         private TaskQueue TaskQueue { get; } = new();
 
         public CacheStrategy CacheStrategy { get; }
+        public override string ShortName => "PrefabAssetRef";
+        public override string StrategyName => CacheStrategy.ToString();
+        public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
         public PrefabAssetReferenceResolver(PrefabAssetReference prefabAssetReference,
             object[] args,
@@ -82,7 +85,6 @@ namespace Doinject.Assets
             }
 
             var instance = await PrefabResolver.ResolveAsync(container);
-            InstanceBag.Add(TargetType, instance);
             return instance;
         }
 
