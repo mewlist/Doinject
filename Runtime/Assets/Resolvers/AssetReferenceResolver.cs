@@ -17,6 +17,9 @@ namespace Doinject.Assets
         private TaskQueue TaskQueue { get; } = new();
 
         public string Name => $"{GetType().Name}<{typeof(T).Name}>";
+        public string ShortName => "AssetRef";
+        public string StrategyName => "Singleton";
+        public int InstanceCount => Instance is null ? 0 : 1;
 
         public AssetReferenceResolver(AssetReference assetReference)
         {

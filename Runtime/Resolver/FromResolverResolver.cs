@@ -10,6 +10,9 @@ namespace Doinject
         private bool Injected { get; set; }
 
         public string Name => $"{GetType().Name}<{typeof(T).Name}>";
+        public string ShortName => "Resolver";
+        public string StrategyName => "FromResolver";
+        public int InstanceCount => 1;
 
         public FromResolverResolver(object[] args)
         {

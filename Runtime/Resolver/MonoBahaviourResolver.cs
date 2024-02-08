@@ -16,6 +16,9 @@ namespace Doinject
         private bool WorldPositionStays { get; }
 
         public CacheStrategy CacheStrategy { get; }
+        public override string ShortName => "MonoBehaviour";
+        public override string StrategyName => CacheStrategy.ToString();
+        public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
         public MonoBahaviourResolver(object[] args, CacheStrategy cacheStrategy, InstanceBag instanceBag, GameObject on)
             : base(instanceBag)

@@ -11,6 +11,9 @@ namespace Doinject
         private AwaitableCompletionSource CachingCompletionSource { get; set; }
         private TResolver InnerResolver { get; }
         public TargetTypeInfo FactoryType { get; }
+        public override string ShortName => "Factory";
+        public override string StrategyName => "Cached";
+        public override int InstanceCount => InstanceBag.HasType(TargetType) ? InstanceBag.OfType(TargetType).Count() : 0;
 
         public FactoryResolver(TResolver innerResolver, InstanceBag instanceBag)
             : base(instanceBag)
