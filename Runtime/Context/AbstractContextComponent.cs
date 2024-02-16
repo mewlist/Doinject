@@ -18,6 +18,7 @@ namespace Doinject
         public SceneContextLoader SceneContextLoader { get; protected set; }
         public GameObjectContextLoader GameObjectContextLoader { get; protected set; }
         public abstract bool IsReverseLoaded { get; }
+        public abstract bool Loaded { get; }
         public bool InjectionProcessing => Context.InjectProcessing;
 
         protected abstract IEnumerable<T> GetComponentsUnderContext<T>();
