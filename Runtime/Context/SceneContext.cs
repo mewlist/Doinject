@@ -99,7 +99,12 @@ namespace Doinject
             InstallBindings();
 
             var injectableComponents
-                = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
+                = GetComponentsUnderContext<IInjectableComponent>()
+                    .Where(x => x.enabled);
+
+            var gameObjectContexts
+                = GetComponentsUnderContext<GameObjectContext>()
+                    .Where(x => x.enabled);
 
             await ContextInternal.RawContainer.GenerateResolvers();
 
@@ -112,6 +117,11 @@ namespace Doinject
                 await TaskHelper.NextFrame();
             }
 
+            using (new ContextSpaceScope(this))
+            {
+                foreach (var gameObjectContext in gameObjectContexts)
+                    await gameObjectContext.Initialize();
+            }
             loaded = true;
         }
 
