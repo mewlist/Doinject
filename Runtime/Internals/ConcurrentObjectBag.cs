@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Doinject
 {
-    public sealed class ConcurrentObjectBag : IEnumerable<object>
+    internal sealed class ConcurrentObjectBag : IEnumerable<object>
     {
         private readonly ConcurrentBag<object> bag = new();
 

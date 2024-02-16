@@ -29,10 +29,12 @@ namespace Doinject
         private CancellationTokenSource CancellationTokenSource { get; } = new();
         private ParallelScope InjectionProcessingScope { get; } = new();
         private ParallelScope AfterInjectionProcessingScope { get; } = new();
-
+        internal ParameterBuilder ParameterBuilder { get; }
+        private ConstructorInjector ConstructorInjector { get; }
+        private MethodInjector MethodInjector { get; }
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
-        public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
+        internal IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
         public bool InjectProcessing => InjectionProcessingScope.Processing;
         public bool AfterInjectProcessing => AfterInjectionProcessingScope.Processing;
 
@@ -42,6 +44,9 @@ namespace Doinject
         {
             Parent = parent;
             Scene = scene;
+            ParameterBuilder = new ParameterBuilder(this);
+            ConstructorInjector = new ConstructorInjector(this);
+            MethodInjector = new MethodInjector(this);
             BindFromInstance<IReadOnlyDIContainer, DIContainer>(this);
         }
 
@@ -82,12 +87,8 @@ namespace Doinject
             where TInstance : T
         {
             var targetType = typeof(T);
-            var instanceType = typeof(TInstance);
-
             ValidateTargetType(targetType);
-
             var targetTypeInfo = new TargetTypeInfo(targetType);
-
             var binderContext = new BinderContext();
             var binder = new InstanceBinder<T, TInstance>(binderContext, instance);
             BinderMap[targetTypeInfo] = binderContext;
@@ -128,7 +129,7 @@ namespace Doinject
             }
         }
 
-        public async Task GenerateResolvers()
+        internal async ValueTask GenerateResolvers()
         {
             if (!BinderMap.Any()) return;
             var toConvert = new Dictionary<TargetTypeInfo, BinderContext>(BinderMap);
@@ -171,42 +172,37 @@ namespace Doinject
             => InstantiateAsync<T>(args, Array.Empty<ScopedInstance>());
 
         public async ValueTask<T> InstantiateAsync<T>(object[] args, ScopedInstance[] scopedInstances)
-            => (T)await InstantiateAsync(typeof(T), args, scopedInstances);
+            => (T)await InstantiateInternalAsync(typeof(T), args, scopedInstances);
 
         public ValueTask<object> InstantiateAsync(Type instanceType, object[] args)
-            => InstantiateAsync(instanceType, args, Array.Empty<ScopedInstance>());
+            => InstantiateInternalAsync(instanceType, args, Array.Empty<ScopedInstance>());
 
-        public async ValueTask<object> InstantiateAsync(Type targetType, object[] args, ScopedInstance[] scopedInstances)
+        private async ValueTask<object> InstantiateInternalAsync(Type targetType, object[] args, ScopedInstance[] scopedInstances)
         {
-            if (targetType.IsInterface)
-                throw new Exception($"Instance type [{targetType.Name}] is interface".ToExceptionMessage());
+            InjectionProcessingScope.Begin();
+            AfterInjectionProcessingScope.Begin();
 
-            var constructors = targetType.GetConstructors();
-            var constructor = constructors.First();
-            var parameters = constructor.GetParameters();
-            object instance;
-            if (parameters.Any())
+            var target = await ConstructorInjector.DoInject(targetType, args, scopedInstances);
+            var methods = targetType.GetMethods();
+
+            try
             {
-                var buildParameters = await ResolveParameters(targetType, parameters, args ?? Array.Empty<object>(), scopedInstances);
-                try
-                {
-                    instance = constructor.Invoke(buildParameters);
-                }
-                catch (Exception e)
-                {
-                    if (e.InnerException is InvalidOperationException)
-                        throw e.InnerException;
-                    throw;
-                }
+                await MethodInjector.DoInject(target, methods, args, scopedInstances);
             }
-            else
+            catch (Exception e)
             {
-                instance = Activator.CreateInstance(targetType);
+                InjectionProcessingScope.End();
+                AfterInjectionProcessingScope.End();
+                throw new FailedToInjectException(target, e);
             }
-            await InjectIntoAsync(instance, args, scopedInstances);
-            return instance;
+
+            InjectionProcessingScope.End();
+            await InvokeAfterInjectCallback(target, methods);
+            AfterInjectionProcessingScope.End();
+            InvokeOnInjectedCallback(target, methods).Forget();
+
+            return target;
         }
-
 
         public async ValueTask<T> InstantiateMonoBehaviourAsync<T>(GameObject on, object[] args)
         {
@@ -239,17 +235,13 @@ namespace Doinject
         public async ValueTask<object> InstantiatePrefabAsync(Type targetType, object[] args, Object prefab)
         {
             var prefabInstance = Object.Instantiate(prefab);
-            var instance = prefabInstance switch
+            var (instance, go) = prefabInstance switch
             {
-                GameObject gameObject => gameObject.GetComponent(targetType),
-                Component component => component.GetComponent(targetType),
-                _ => null
-            };
-            var go = prefabInstance switch
-            {
-                GameObject gameObject => gameObject,
-                Component component => component.gameObject,
-                _ => null
+                GameObject gameObject
+                    => (gameObject.GetComponent(targetType), gameObject),
+                Component component
+                    => (component.GetComponent(targetType), component.gameObject),
+                _ => (null, null)
             };
 
             if (Scene.IsValid())
@@ -262,7 +254,7 @@ namespace Doinject
                 return instance;
 
             foreach (var component in go.GetComponentsInChildren(typeof(IInjectableComponent)))
-                await InjectIntoAsync(component, args: args);
+                await InjectIntoAsync(component, args);
 
             return instance;
         }
@@ -270,65 +262,32 @@ namespace Doinject
         public ValueTask InjectIntoAsync<T>(T target)
             => InjectIntoAsync(target, Array.Empty<object>());
 
-        public ValueTask InjectIntoAsync<T>(T target, object[] args)
-            => InjectIntoAsync(target, args, Array.Empty<ScopedInstance>());
+        public async ValueTask InjectIntoAsync<T>(T target, object[] args)
+            => await InjectIntoInternalAsync(target, args, scopedInstances: Array.Empty<ScopedInstance>());
 
-        private async ValueTask InjectIntoAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
+        private async ValueTask InjectIntoInternalAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
             InjectionProcessingScope.Begin();
             AfterInjectionProcessingScope.Begin();
 
             var targetType = target.GetType();
-            var resolverType = targetType;
-
-            // If target in InstanceResolver try to set Injected flag
-            if (targetType == typeof(IInjectableComponent))
-                resolverType = target.GetType();
-
-            if (Resolvers.TryGetValue(new TargetTypeInfo(resolverType), out var resolver))
-            {
-                if (resolver is IInstanceResolver instanceResolver)
-                    instanceResolver.Injected = true;
-            }
-
             var methods = targetType.GetMethods();
 
-            await InvokeInjectCallback(target, methods, args, scopedInstances);
+            try
+            {
+                await MethodInjector.DoInject(target, methods, args, scopedInstances);
+            }
+            catch (Exception e)
+            {
+                InjectionProcessingScope.End();
+                AfterInjectionProcessingScope.End();
+                throw new FailedToInjectException(target, e);
+            }
+
             InjectionProcessingScope.End();
             await InvokeAfterInjectCallback(target, methods);
             AfterInjectionProcessingScope.End();
             InvokeOnInjectedCallback(target, methods).Forget();
-        }
-
-        private async ValueTask DoInject<T>(T target, MethodInfo methodInfo, object[] args,
-            ScopedInstance[] scopedInstances)
-        {
-            var parameters = await ResolveParameters(target.GetType(), methodInfo.GetParameters(), args, scopedInstances);
-            if (methodInfo.IsTask()) await (Task)methodInfo.Invoke(target, parameters);
-            else if (methodInfo.IsValueTask()) await (ValueTask)methodInfo.Invoke(target, parameters);
-#if USE_UNITASK
-            else if (methodInfo.IsUniTask()) await (UniTask)methodInfo.Invoke(target, parameters);
-#endif
-            else methodInfo.Invoke(target, parameters);
-        }
-
-        private async Task InvokeInjectCallback<T>(T target, IEnumerable<MethodInfo> methods, object[] args, ScopedInstance[] scopedInstances)
-        {
-            foreach (var methodInfo in methods.Reverse())
-            {
-                try
-                {
-                    var attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
-                    if (!attr.Any()) continue;
-                    await DoInject(target, methodInfo, args, scopedInstances);
-                }
-                catch (Exception e)
-                {
-                    InjectionProcessingScope.End();
-                    AfterInjectionProcessingScope.End();
-                    throw new FailedToInjectException(target, e);
-                }
-            }
         }
 
         private async ValueTask InvokeAfterInjectCallback(object target, IEnumerable<MethodInfo> methods)
@@ -374,55 +333,13 @@ namespace Doinject
             else callback.Invoke(target, Array.Empty<object>());
         }
 
-        private async ValueTask<object[]> ResolveParameters(
-            Type targetType,
-            IEnumerable<ParameterInfo> parameterInfos,
-            object[] args,
-            ScopedInstance[] scopedInstances)
+        internal void MarkInjected(Type resolverType)
         {
-            var parameters = new List<object>();
-            var argsQueue = new Queue<object>(args ?? Array.Empty<object>());
-            foreach (var parameterInfo in parameterInfos)
-            {
-                try
-                {
-                    var parameter = await ResolveAsync(parameterInfo.ParameterType);
-                    parameters.Add(parameter);
-                    continue;
-                }
-                catch (FailedToResolveException)
-                {
-                    // ignored
-                }
+            if (!Resolvers.TryGetValue(new TargetTypeInfo(resolverType), out var resolver)) return;
 
-                if (argsQueue.Any() && argsQueue.Peek().GetType() == parameterInfo.ParameterType)
-                {
-                    parameters.Add(argsQueue.Dequeue());
-                    continue;
-                }
-
-                var matched = scopedInstances
-                    .FirstOrDefault(x => x.TargetType == parameterInfo.ParameterType);
-
-                if (matched.IsValid)
-                {
-                    parameters.Add(matched.Instance);
-                }
-                else
-                {
-                    var optionalAttribute = parameterInfo.GetCustomAttribute(typeof(OptionalAttribute), true);
-                    var parameterType = parameterInfo.ParameterType;
-
-                    if (optionalAttribute is null)
-                        throw new FailedToResolveParameterException(parameterInfo.ParameterType, targetType);
-
-                    parameters.Add(parameterType.IsValueType
-                        ? Activator.CreateInstance(parameterType)
-                        : null);
-                }
-            }
-
-            return parameters.ToArray();
+            // If target in InstanceResolver try to set Injected flag
+            if (resolver is IInstanceResolver instanceResolver)
+                instanceResolver.Injected = true;
         }
 
         public async ValueTask<T> ResolveAsync<T>()
@@ -485,9 +402,9 @@ namespace Doinject
                 throw new Exception($"Already has binding for type [{targetType}]");
         }
 
-        public void PushInstance(object installer)
+        public void PushInstance(object instance)
         {
-            InstanceBag.Add(new TargetTypeInfo(installer.GetType()), installer);
+            InstanceBag.Add(new TargetTypeInfo(instance.GetType()), instance);
         }
 
         public async ValueTask DisposeAsync()
