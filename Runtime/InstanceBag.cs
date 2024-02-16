@@ -11,7 +11,7 @@ namespace Doinject
     public class InstanceBag : IAsyncDisposable
     {
         private ConcurrentDictionary<TargetTypeInfo, ConcurrentObjectBag> InstanceMap { get; } = new();
-        public IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => InstanceMap;
+        internal IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => InstanceMap;
 
         public bool HasType(TargetTypeInfo targetType)
         {

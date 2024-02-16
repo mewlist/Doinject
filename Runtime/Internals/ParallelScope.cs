@@ -5,7 +5,7 @@ namespace Doinject
 {
     internal class ParallelScope
     {
-        public int Count { get; private set; }
+        private int Count { get; set; }
 
         private AwaitableCompletionSource CompletionSource { get; } = new();
 
