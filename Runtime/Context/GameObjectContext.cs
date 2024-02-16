@@ -12,6 +12,9 @@ namespace Doinject
         public override Scene Scene => Context.Scene;
         public override bool IsReverseLoaded => false;
 
+        private bool loaded;
+        public override bool Loaded => loaded;
+
 
         protected override async void Awake()
         {
@@ -23,6 +26,7 @@ namespace Doinject
         private async void OnDestroy()
         {
             if (Context is null) return;
+            loaded = false;
             await Shutdown();
             ParentContext?.GameObjectContextLoader.Unregister(this);
             if (gameObject) Destroy(gameObject);
@@ -35,6 +39,7 @@ namespace Doinject
 
         public async void Reboot()
         {
+            loaded = false;
             await TaskQueue.EnqueueAsync(async _
                 => await RebootInternal());
         }
@@ -71,6 +76,8 @@ namespace Doinject
 
             await Task.WhenAll(injectableComponents.Select(x
                 => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
+
+            loaded = true;
         }
 
         private async Task Shutdown()

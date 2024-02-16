@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using Mew.Core.TaskHelpers;
 using UnityEngine;
 
 namespace Doinject
 {
-    public class InjectableComponent : MonoBehaviour, IInjectableComponent
+    public class DynamicInjectable : MonoBehaviour, IInjectableComponent
     {
         private bool Injected { get; set; }
 
@@ -16,9 +17,17 @@ namespace Doinject
         private async void Start()
         {
             if (Injected) return;
-            Injected = true;
 
             var context = FindParentContext();
+            while (!context.Loaded)
+            {
+                destroyCancellationToken.ThrowIfCancellationRequested();;
+                await TaskHelper.NextFrame();
+            }
+
+            if (Injected) return;
+            Injected = true;
+
             foreach (var component in GetComponents(typeof(IInjectableComponent)).Cast<IInjectableComponent>())
             {
                 if (component == this as IInjectableComponent) continue;

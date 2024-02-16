@@ -80,7 +80,7 @@ public class SomeClass
 }
 ```
 
-## コンポーネントへの遅延インジェクション (InjectableComponent)
+## コンポーネントへの動的インジェクション (DynamicInjectable)
 
 コンテクスト空間の生成後、通常の Instantiate を使うなど、Factory などを通さずにコンポーネントを生成したときは、
 通常は、そのコンポーネントに対してインジェクションは行われません。
@@ -88,6 +88,7 @@ public class SomeClass
 通常このようなケースでは、Factory を使ってインスタンスを生成することで、インジェクションを行うことができますが、
 いちいち Factory を用意するのも面倒です。
 
-そんなときは、あらかじめ　```InjectableComponent``` を GameObject にアタッチすることで、
-インスタンスが生成されたタイミングで、 同オブジェクトにアタッチされている他のコンポーネントへのインジェクションを行うことができます。
+そんなときは、あらかじめ　```DynamicInjectable``` コンポーネントを GameObject にアタッチすると、
+```Object.Instantiate``` で、インスタンスが生成されたタイミングでも、 同オブジェクトにアタッチされている
+IInjectableComponent を継承したコンポーネントへのインジェクションを行うことができます。
 

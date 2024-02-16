@@ -11,5 +11,6 @@ namespace Doinject
         GameObjectContextLoader GameObjectContextLoader { get; }
         bool IsReverseLoaded { get; }
         bool InjectionProcessing { get; }
+        bool Loaded { get; }
     }
 }

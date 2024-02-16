@@ -24,7 +24,8 @@ namespace Doinject
         private bool isReverseLoaded;
         public override bool IsReverseLoaded => isReverseLoaded;
 
-        public bool Loaded { get; private set; }
+        private bool loaded;
+        public override bool Loaded => loaded;
 
         private SceneContextLoader ownerSceneContextLoader;
         private SceneContextLoader OwnerSceneContextLoader => ownerSceneContextLoader;
@@ -35,6 +36,8 @@ namespace Doinject
 
         protected override async void Awake()
         {
+            SceneContextMap[Scene] = this;
+
             base.Awake();
 
             if (ContextSpaceScope.Scoped) return;
@@ -46,6 +49,8 @@ namespace Doinject
 
         private async void OnDestroy()
         {
+            isReverseLoaded = false;
+            loaded = false;
             await Shutdown();
             if (Context is not null) SceneContextMap.Remove(Context.Scene, out _);
             if (OwnerSceneContextLoader) await OwnerSceneContextLoader.UnloadAsync(this);
@@ -64,6 +69,8 @@ namespace Doinject
 
         private async Task RebootInternal()
         {
+            isReverseLoaded = false;
+            loaded = false;
             await SceneContextLoader.UnloadAllScenesAsync();
             await Shutdown();
             await Resources.UnloadUnusedAssets();
@@ -89,12 +96,15 @@ namespace Doinject
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
 
-            SceneContextMap[scene] = this;
-
             InstallBindings();
 
             var injectableComponents
-                = GetComponentsUnderContext<IInjectableComponent>().Where(x => x.enabled);
+                = GetComponentsUnderContext<IInjectableComponent>()
+                    .Where(x => x.enabled);
+
+            var gameObjectContexts
+                = GetComponentsUnderContext<GameObjectContext>()
+                    .Where(x => x.enabled);
 
             await ContextInternal.RawContainer.GenerateResolvers();
 
@@ -107,13 +117,16 @@ namespace Doinject
                 await TaskHelper.NextFrame();
             }
 
-            Loaded = true;
+            using (new ContextSpaceScope(this))
+            {
+                foreach (var gameObjectContext in gameObjectContexts)
+                    await gameObjectContext.Initialize();
+            }
+            loaded = true;
         }
 
         private async Task Shutdown()
         {
-            isReverseLoaded = false;
-            Loaded = false;
             if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
             if (Context is not null) await Context.DisposeAsync();
