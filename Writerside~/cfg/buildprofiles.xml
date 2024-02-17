@@ -14,7 +14,12 @@
     </footer>
     <build-profile instance="di">
         <variables>
-            <noindex-content>true</noindex-content>
+            <noindex-content>false</noindex-content>
+        </variables>
+    </build-profile>
+    <build-profile instance="di_en">
+        <variables>
+            <noindex-content>false</noindex-content>
         </variables>
     </build-profile>
 </buildprofiles>

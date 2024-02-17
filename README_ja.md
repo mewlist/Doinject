@@ -9,7 +9,7 @@ Asynchronous DI Container for Unity
 ## ドキュメント
 
 * [日本語ドキュメント](https://mewlist.github.io/Doinject)
-* English document is not available yet.
+* [Documents in English](https://mewlist.github.io/Doinject/en/introduction-en.html)
 
 ## インストール
 

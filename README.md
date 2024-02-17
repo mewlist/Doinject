@@ -13,7 +13,7 @@ Asynchronous DI Container for Unity
 [![Build documentation](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml/badge.svg)](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml)
 
 * [日本語ドキュメント](https://mewlist.github.io/Doinject)
-* English document is not available yet.
+* [Documents in English](https://mewlist.github.io/Doinject/en/introduction-en.html)
 
 ## Installation
 

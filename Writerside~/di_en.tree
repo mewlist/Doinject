@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="di_en"
+                 name="Doinject En"
+                 start-page="index_en.topic">
+
+    <toc-element topic="index_en.topic"/>
+    <toc-element topic="introduction_en.md"/>
+    <toc-element topic="about_di_framework_en.md"/>
+    <toc-element topic="tutorial_en.md"/>
+    <toc-element topic="context_space_en.md">
+        <toc-element topic="context_tree_window_en.md"/>
+        <toc-element topic="scene_context_space_en.md"/>
+        <toc-element topic="game_object_context_space_en.md"/>
+        <toc-element topic="project_context_space_en.md"/>
+        <toc-element topic="close_context_space_en.md"/>
+        <toc-element topic="scene_transition_en.md"/>
+        <toc-element topic="context_arg_en.md"/>
+        <toc-element topic="dependent_context_reverse_loading_en.md"/>
+    </toc-element>
+    <toc-element topic="installer_en.md">
+        <toc-element topic="installer_component_en.md"/>
+        <toc-element topic="installer_prefab_en.md"/>
+        <toc-element topic="installer_scriptable_object_en.md"/>
+        <toc-element topic="empty_installer_component_en.md"/>
+        <toc-element topic="bind_components_in_scene_or_prefab_en.md"/>
+    </toc-element>
+    <toc-element topic="injection_en.md"/>
+    <toc-element topic="bindings_en.md"/>
+    <toc-element topic="bindings_advanced_en.md"/>
+    <toc-element topic="troubleshooting_en.md"/>
+</instance-profile>
