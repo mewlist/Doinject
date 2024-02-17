@@ -43,8 +43,7 @@ namespace Doinject
             foreach (var installerPrefab in InstallerPrefabs)
             {
                 var installer = Instantiate(installerPrefab);
-                using var instanceIds = new NativeArray<int>( new [] { installer.gameObject.GetInstanceID() }, Allocator.Temp);
-                SceneManager.MoveGameObjectsToScene(instanceIds, gameObject.scene);
+                SceneManager.MoveGameObjectToScene(installer.gameObject, gameObject.scene);
                 installer.Install(container, contextArg);
                 container.PushInstance(installer);
                 InstalledPrefabs.Add(installer.gameObject);

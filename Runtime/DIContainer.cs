@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Mew.Core.Extensions;
 using Mew.Core.TaskHelpers;
 using Mew.Core.UnityObjectHelpers;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -150,19 +149,15 @@ namespace Doinject
                 newResolvers.Add(resolver);
             }
 
-            // try cache
             foreach (var newResolver in newResolvers)
-            {
-                if (newResolver is not ICacheStrategy cacheableResolver) continue;
-                try
-                {
-                    await cacheableResolver.TryCacheAsync(this);
-                }
-                catch (Exception e)
-                {
-                    throw new FailedToCacheException(newResolver, e);
-                }
-            }
+                await TryCache(newResolver);
+        }
+
+        private async ValueTask TryCache(IInternalResolver resolver)
+        {
+            if (resolver is not ICacheStrategy cacheableResolver) return;
+            try { await cacheableResolver.TryCacheAsync(this); }
+            catch (Exception e) { throw new FailedToCacheException(resolver, e); }
         }
 
         public ValueTask<T> InstantiateAsync<T>()
@@ -245,10 +240,7 @@ namespace Doinject
             };
 
             if (Scene.IsValid())
-            {
-                using var instanceIds = new NativeArray<int>( new [] { go.GetInstanceID() }, Allocator.Temp);
-                SceneManager.MoveGameObjectsToScene(instanceIds, Scene);
-            }
+                SceneManager.MoveGameObjectToScene(go, Scene);
 
             if (go.GetComponent(typeof(IGameObjectContextRoot)))
                 return instance;
