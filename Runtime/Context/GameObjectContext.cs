@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mew.Core.TaskHelpers;
 using UnityEngine.SceneManagement;
 
 namespace Doinject
@@ -12,6 +13,7 @@ namespace Doinject
         public override Scene Scene => Context.Scene;
         public override bool IsReverseLoaded => false;
 
+        private bool loading;
         private bool loaded;
         public override bool Loaded => loaded;
 
@@ -39,7 +41,6 @@ namespace Doinject
 
         public async void Reboot()
         {
-            loaded = false;
             await TaskQueue.EnqueueAsync(async _
                 => await RebootInternal());
         }
@@ -54,6 +55,8 @@ namespace Doinject
 
         private async Task Boot(IContext parentContext)
         {
+            if (loading || loaded) return;
+            loading = true;
             ParentContext = parentContext;
 
             ContextInternal = new ContextInternal(gameObject, ParentContext?.Context);
@@ -65,8 +68,6 @@ namespace Doinject
             GameObjectContextLoader = gameObject.AddComponent<GameObjectContextLoader>();
             GameObjectContextLoader.SetContext(this);
 
-            ParentContext?.GameObjectContextLoader.Register(this);
-
             InstallBindings();
 
             var injectableComponents
@@ -77,14 +78,16 @@ namespace Doinject
             await Task.WhenAll(injectableComponents.Select(x
                 => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
 
+            loading = false;
             loaded = true;
         }
 
-        private async Task Shutdown()
+        public async Task Shutdown()
         {
             if (SceneContextLoader) await SceneContextLoader.DisposeAsync();
             if (GameObjectContextLoader) await GameObjectContextLoader.DisposeAsync();
             if (Context is not null) await Context.DisposeAsync();
+            loaded = false;
         }
 
         private void InstallBindings()

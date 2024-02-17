@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 
 namespace Doinject
 {
+    [DefaultExecutionOrder(-1000)]
     public sealed class SceneContext : AbstractContextComponent
     {
         private static readonly ConcurrentDictionary<Scene, SceneContext> SceneContextMap = new();
@@ -73,7 +74,12 @@ namespace Doinject
             loaded = false;
             await SceneContextLoader.UnloadAllScenesAsync();
             await Shutdown();
+#if UNITY_2023_2_OR_NEWER
             await Resources.UnloadUnusedAssets();
+#else
+            var asyncOp = Resources.UnloadUnusedAssets();
+            while (!asyncOp.isDone) await TaskHelper.NextFrame();
+#endif
             await ContextSpaceScope.WaitForRelease(destroyCancellationToken);
             await Boot(gameObject.scene, ParentContext);
         }
@@ -120,7 +126,10 @@ namespace Doinject
             using (new ContextSpaceScope(this))
             {
                 foreach (var gameObjectContext in gameObjectContexts)
+                {
+                    await gameObjectContext.Shutdown();
                     await gameObjectContext.Initialize();
+                }
             }
             loaded = true;
         }
