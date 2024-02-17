@@ -65,25 +65,95 @@ You can achieve replacements for the factory pattern, (context-closed) singleton
 Additionally, by creating custom factories or custom resolvers, you can handle more complex instance creation scenarios.
 
 
-## Examples code of Binding
+## Binding
 
-| Code                                                                                | Instance                                                                                                                                                                      | instance type |
-|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
-| ```container.Bind<SomeClass>();```                                                  | ```new SomeClass()```                                                                                                                                                                 | cached        |
-| ```container.Bind<SomeClass>().AsSingleton();```　                                   | ```new SomeClass()```                                                                                                                                                                 | singleton     |
-| ```container.Bind<SomeClass>().AsTransient();```　                                   | ```new SomeClass()```                                                                                                                                                                 | transient     |
-| ```container.Bind<SomeClass>().Args(123,"ABC");```　                                 | ```new SomeClass(123, "abc")```                                                                                                                                                       | cached        |
-| ```container.Bind<ISomeInterface>().To<SomeClass>();```　                            | ```new SomeClass() as ISomeInterface```                                                                                                                                               | cached        |
-| ```container.Bind<ISomeInterface, SomeClass>();```　                                 | ```new SomeClass() as ISomeInterface```                                                                                                                                               | cached        |
-| ```container.Bind<SomeComponent>();```                                              | ```new GameObject().AddComponent<SomeComponent>()```                                                                                                                                  | cached        |
-| ```container.Bind<SomeClass>().FromInstance(instance);```                           | ```instance```                                                                                                                                                                        | instance      |
-| ```container.BindInstance(instance);```                                             | ```instance```                                                                                                                                                                        | instance      |
-| ```container.BindPrefab<SomeComponent>(somePrefab);```                              | ```Instantiate(somePrefab).GetComponent<SomeComponent>()```                                                                                                                           | cached        |
-| ```container.BindAssetReference<SomeAddressalbesObject>(assetReference);```    | ```var handle = Addressables.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/>```var prefab = await handle.Task```                                                             | instance      |
-| ```container.BindPrefabAssetReference<SomeComponent>(prefabAssetReference);``` | ```var handle = Addressables.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/>```var prefab = await handle.Task```<br/>```Instantiate(prefab).GetComponent<SomeComponent>()``` | cached        |
-| ```container.Bind<SomeClass>().AsFactory();```                                      | ```new Factory<SomeClass>(new TypeResolver<SomeClass>()) as IFactory<SomeClass>```                                                                                                    | factory       |
-| ```container.Bind<SomeComponent>().AsFactory();```                                  | ```new Factory<SomeComponent>(new MonoBehaviourResolver())) as IFactory<SomeComponent>```                                                                                             | factory       |
+### Type Binding
+
+| Code                                                                  | Resolver behavior　                      | Type      |
+|-----------------------------------------------------------------------|-----------------------------------------|-----------|
+| ```container.Bind<SomeClass>();```                                    | ```new SomeClass()```                   | cached    |
+| ```container.Bind<SomeClass>().AsSingleton();```　                     | ```new SomeClass()```                   | singleton |
+| ```container.Bind<SomeClass>().AsTransient();```　                     | ```new SomeClass()```                   | transient |
+| ```container.Bind<SomeClass>().Args(123,"ABC");```　                   | ```new SomeClass(123, "abc")```         | cached    |
+| ```container.Bind<ISomeInterface>().To<SomeClass>();```　              | ```new SomeClass() as ISomeInterface``` | cached    |
+| ```container.Bind<ISomeInterface, SomeClass>();```　                   | ```new SomeClass() as ISomeInterface``` | cached    |
+| ```container.Bind<SomeClass>()```<br />```.FromInstance(instance);``` | ```instance```                          | instance  |
+| ```container.BindInstance(instance);```                               | ```instance```                          | instance  |
+
+### MonoBehaviour Binding
+
+| Code                                                                  | Resolver behavior　                      |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| ```container.Bind<SomeComponent>();```                              | ```new GameObject().AddComponent<SomeComponent>()```                                                                    |
+| ```container```<br />```.Bind<SomeComponent>()```<br />```.Under(transform);``` | ```var instance = new GameObject().AddComponent<SomeComponent>();```<br/>```instance.transform.SetParent(transform);``` |
+| ```container```<br />```.Bind<SomeComponent>()```<br />```.On(gameObject);```   | ```gameObject.AddComponent<SomeComponent>()```                                                                             |
+| ```container```<br />```.BindPrefab<SomeComponent>(somePrefab);```  | ```Instantiate(somePrefab).GetComponent<SomeComponent>()```                                                             |
+
+### Addressables Binding
 
 
+| Code                                                                  | Resolver behavior　                      |
+|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ```container```<br />```.BindAssetReference<SomeAddressalbesObject>(assetReference);```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(assetReference)```<br/><br/>```await handle.Task```　                                                                                    |
+| ```container```<br />```.BindPrefabAssetReference<SomeComponent>(prefabAssetReference);``` | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/><br/>```var prefab = await handle.Task```<br/><br/>```Instantiate(prefab).GetComponent<SomeComponent>()``` |
+| ```container```<br />```.BindAssetRuntimeKey<SomeAddressalbesObject>("guid or path");```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>("guid or path")```<br/><br/>```await handle.Task```　                                                                                    |
+| ```container```<br />```.BindPrefabAssetRuntimeKey<SomeComponent>("guid or path");```      | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>("guid or path")```<br/><br/>```var prefab = await handle.Task```<br/><br/>```Instantiate(prefab).GetComponent<SomeComponent>()```       |
+
+### Factory Binding
+
+| Code                                                                  | Resolver behavior　                      |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ```container```<br />```.Bind<SomeClass>()```<br />```.AsFactory();```                  | ```var resolver = new TypeResolver<SomeClass>()```<br/><br/>```new Factory<SomeClass>(resolver) as IFactory<SomeClass>```                                   |
+| ```container```<br />```.Bind<SomeComponent>()```<br />```.AsFactory();```              | ```var resolver = new MonoBehaviourResolver<SomeComponent>()```<br/><br/>```new Factory<SomeComponent>(resolver))```<br />``` as IFactory<SomeComponent>``` |
+| ```container```<br />```.Bind<SomeClass>()```<br />```.AsCustomFactory<MyFactory>();``` | ```new CustomFactoryResolver<MyFactory>() as IFactory<SomeClass>```                                                                          |
 
 
+## Injection
+
+### Installer
+
+```
+public class SomeInstaller : BindingInstallerScriptableObject
+{
+    public override void Install(DIContainer container, IContextArg contextArg)
+    {
+        container.Bind<SomeClass>();
+    }
+}
+```
+
+### Constructor Injection
+
+```
+class ExampleClass
+{
+    // Constructor Injection
+    public ExampleClass(SomeClass someClass)
+    { ... }
+}
+```
+
+### Method Injection
+
+```
+class ExampleClass
+{
+    // Method Injection
+    [Inject]
+    public Construct(SomeClass someClass)
+    { ... }
+}
+```
+
+### Injection to MonoBehaviour
+
+```
+// Inherits IInjectableComponent
+class ExampleComponent : MonoBehaviour, IInjectableComponent
+{
+    // Method Injection
+    [Inject]
+    public void Construct(SomeClass someClass)
+    { ... }
+}
+```
