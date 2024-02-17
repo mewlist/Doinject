@@ -8,7 +8,7 @@ using Cysharp.Threading.Tasks;
 
 namespace Doinject
 {
-    public class MethodInjector
+    internal class MethodInjector
     {
         private DIContainer Container { get; }
         private ParameterBuilder ParameterBuilder { get; }
@@ -21,7 +21,7 @@ namespace Doinject
 
         public async ValueTask DoInject<T>(
             T target,
-            IEnumerable<MethodInfo> methods,
+            TargetMethodsInfo methods,
             object[] args,
             ScopedInstance[] scopedInstances)
         {
@@ -33,11 +33,8 @@ namespace Doinject
 
             Container.MarkInjected(resolverType);
 
-            foreach (var methodInfo in methods.Reverse())
+            foreach (var methodInfo in methods.InjectMethods)
             {
-                var attr = methodInfo.GetCustomAttributes(typeof(InjectAttribute), true);
-                if (!attr.Any()) continue;
-
                 var parameters = await ParameterBuilder.ResolveParameters(target.GetType(), methodInfo.GetParameters(), args, scopedInstances);
                 if (methodInfo.IsTask()) await (Task)methodInfo.Invoke(target, parameters);
                 else if (methodInfo.IsValueTask()) await (ValueTask)methodInfo.Invoke(target, parameters);

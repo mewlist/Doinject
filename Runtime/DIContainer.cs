@@ -178,11 +178,11 @@ namespace Doinject
             AfterInjectionProcessingScope.Begin();
 
             var target = await ConstructorInjector.DoInject(targetType, args, scopedInstances);
-            var methods = targetType.GetMethods();
+            var targetMethodsInfo = GetTargetMethodInfo(targetType);
 
             try
             {
-                await MethodInjector.DoInject(target, methods, args, scopedInstances);
+                await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
             }
             catch (Exception e)
             {
@@ -192,9 +192,9 @@ namespace Doinject
             }
 
             InjectionProcessingScope.End();
-            await InvokeAfterInjectCallback(target, methods);
+            await InvokePostInjectCallback(target, targetMethodsInfo);
             AfterInjectionProcessingScope.End();
-            InvokeOnInjectedCallback(target, methods).Forget();
+            InvokeOnInjectedCallback(target, targetMethodsInfo).Forget();
 
             return target;
         }
@@ -263,11 +263,11 @@ namespace Doinject
             AfterInjectionProcessingScope.Begin();
 
             var targetType = target.GetType();
-            var methods = targetType.GetMethods();
+            var targetMethodsInfo = GetTargetMethodInfo(targetType);
 
             try
             {
-                await MethodInjector.DoInject(target, methods, args, scopedInstances);
+                await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
             }
             catch (Exception e)
             {
@@ -277,36 +277,24 @@ namespace Doinject
             }
 
             InjectionProcessingScope.End();
-            await InvokeAfterInjectCallback(target, methods);
+            await InvokePostInjectCallback(target, targetMethodsInfo);
             AfterInjectionProcessingScope.End();
-            InvokeOnInjectedCallback(target, methods).Forget();
+            InvokeOnInjectedCallback(target, targetMethodsInfo).Forget();
         }
 
-        private async ValueTask InvokeAfterInjectCallback(object target, IEnumerable<MethodInfo> methods)
+        internal Dictionary<Type, TargetMethodsInfo> MethodInfoMap { get; } = new();
+
+        private async ValueTask InvokePostInjectCallback(object target, TargetMethodsInfo methods)
         {
-            foreach (var methodInfo in methods.Reverse())
-            {
-                var attr = methodInfo.GetCustomAttributes(typeof(PostInjectAttribute), true);
-                if (!attr.Any()) continue;
-                if (methodInfo.GetParameters().Length == 0)
-                    await InvokeCallback(target, methodInfo, InjectionProcessingScope);
-                else
-                    throw new Exception("PostInject method should not have any parameters");
-            }
+            foreach (var methodInfo in methods.PostInjectMethods)
+                await InvokeCallback(target, methodInfo, InjectionProcessingScope);
         }
 
-        private async ValueTask InvokeOnInjectedCallback(object target, IEnumerable<MethodInfo> methods)
+        private async ValueTask InvokeOnInjectedCallback(object target, TargetMethodsInfo methods)
         {
             await TaskHelper.NextFrame();
-            foreach (var methodInfo in methods.Reverse())
-            {
-                var attr = methodInfo.GetCustomAttributes(typeof(OnInjectedAttribute), true);
-                if (!attr.Any()) continue;
-                if (methodInfo.GetParameters().Length == 0)
-                    await InvokeCallback(target, methodInfo, InjectionProcessingScope);
-                else
-                    throw new Exception("OnInjected method should not have any parameters");
-            }
+            foreach (var methodInfo in methods.OnInjectedMethods)
+                await InvokeCallback(target, methodInfo, InjectionProcessingScope);
         }
 
         private async ValueTask InvokeCallback<T>(T target, MethodInfo callback, ParallelScope completionSource)
@@ -397,6 +385,16 @@ namespace Doinject
         public void PushInstance(object instance)
         {
             InstanceBag.Add(new TargetTypeInfo(instance.GetType()), instance);
+        }
+
+        private TargetMethodsInfo GetTargetMethodInfo(Type targetType)
+        {
+            if (MethodInfoMap.TryGetValue(targetType, out var targetMethodsInfo))
+                return targetMethodsInfo;
+
+            targetMethodsInfo = new TargetMethodsInfo(targetType);
+            MethodInfoMap[targetType] = targetMethodsInfo;
+            return targetMethodsInfo;
         }
 
         public async ValueTask DisposeAsync()
