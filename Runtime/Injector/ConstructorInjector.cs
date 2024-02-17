@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Doinject
 {
-    public class ConstructorInjector
+    internal class ConstructorInjector
     {
         private ParameterBuilder ParameterBuilder { get; }
 
