@@ -9,6 +9,7 @@ Doinject is an asynchronous DI (Dependency Injection) framework for Unity.
 The concept is based on an asynchronous DI container.
 Unfortunately, we do not support versions of Unity prior to 2022.
 
+![](https://img.shields.io/badge/unity-2022.3%20or%20later-green?logo=unity)
 ![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
 ![](https://img.shields.io/badge/license-MIT-blue)
 
