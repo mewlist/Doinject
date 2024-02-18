@@ -20,10 +20,7 @@ namespace Doinject
 
             var context = FindParentContext();
             while (!context.Loaded)
-            {
-                destroyCancellationToken.ThrowIfCancellationRequested();;
-                await TaskHelper.NextFrame();
-            }
+                await TaskHelper.NextFrame(destroyCancellationToken);
 
             if (Injected) return;
             Injected = true;

@@ -32,7 +32,7 @@ namespace Doinject
             while (StackedScope.Any())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await TaskHelper.NextFrame();
+                await TaskHelper.NextFrame(cancellationToken);
             }
         }
     }

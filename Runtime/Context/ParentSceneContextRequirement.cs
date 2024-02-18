@@ -29,10 +29,7 @@ namespace Doinject
             }
 
             while (!sceneContext.Loaded)
-            {
-                destroyCancellationToken.ThrowIfCancellationRequested();
-                await TaskHelper.NextFrame();
-            }
+                await TaskHelper.NextFrame(destroyCancellationToken);
 
             sceneContext.SceneContextLoader.AddChild(current);
             return sceneContext;

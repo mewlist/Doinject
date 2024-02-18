@@ -118,10 +118,7 @@ namespace Doinject
                 => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
 
             while (InjectionProcessing)
-            {
-                destroyCancellationToken.ThrowIfCancellationRequested();
-                await TaskHelper.NextFrame();
-            }
+                await TaskHelper.NextFrame(destroyCancellationToken);
 
             using (new ContextSpaceScope(this))
             {
