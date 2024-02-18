@@ -29,10 +29,7 @@ namespace Doinject
         public static async Task WaitForRelease(CancellationToken cancellationToken = default)
         {
             while (StackedScope.Any())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await TaskHelper.NextFrame();
-            }
+                await TaskHelper.NextFrame(cancellationToken);
         }
     }
 }

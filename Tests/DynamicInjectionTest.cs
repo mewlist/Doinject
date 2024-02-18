@@ -39,7 +39,7 @@ namespace Doinject.Tests
             var instances = sceneContext.Scene.FindComponentsByType<TestMonoBehaviour>();
             var prefab = AssetDatabase.LoadAssetAtPath<TestMonoBehaviour>(testGameObjectContextPrefabPath);
 
-            await TaskHelper.NextFrame();
+            await TaskHelperInternal.NextFrame();
 
             foreach (var testMonoBehaviour in instances)
                 Assert.That(testMonoBehaviour.InjectedCount, Is.EqualTo(1));
@@ -48,7 +48,7 @@ namespace Doinject.Tests
             var parent = Object.FindFirstObjectByType<GameObjectContext>().transform;
             var instance = Object.Instantiate(prefab, parent);
             Assert.That(instance.InjectedCount, Is.EqualTo(0));
-            await TaskHelper.NextFrame();
+            await TaskHelperInternal.NextFrame();
             Assert.That(instance.InjectedCount, Is.EqualTo(1));
             await contextLoader.UnloadAllScenesAsync();
         }
