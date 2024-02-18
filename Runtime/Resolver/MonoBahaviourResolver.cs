@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Mew.Core;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -8,7 +9,7 @@ namespace Doinject
     public sealed class MonoBahaviourResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
         where TInstance : T
     {
-        private AwaitableCompletionSource CachingCompletionSource { get; set; }
+        private MewCompletionSource CachingCompletionSource { get; set; }
         private TargetTypeInfo InstanceType { get; }
         private object[] Args { get; }
         private GameObject On { get; }
@@ -51,7 +52,7 @@ namespace Doinject
                     if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
-                    CachingCompletionSource = new AwaitableCompletionSource();
+                    CachingCompletionSource = new MewCompletionSource();
                     break;
             }
 

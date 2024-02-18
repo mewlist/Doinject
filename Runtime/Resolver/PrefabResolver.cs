@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Mew.Core;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Object = UnityEngine.Object;
@@ -9,7 +10,7 @@ namespace Doinject
 {
     public sealed class PrefabResolver<T> : AbstractInternalResolver<T>, ICacheStrategy
     {
-        private AwaitableCompletionSource CachingCompletionSource { get; set; }
+        private MewCompletionSource CachingCompletionSource { get; set; }
         private Object Prefab { get; }
         private object[] Args { get; }
         private Transform Under { get; }
@@ -45,7 +46,7 @@ namespace Doinject
                     if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
-                    CachingCompletionSource = new AwaitableCompletionSource();
+                    CachingCompletionSource = new MewCompletionSource();
                     break;
             }
 
