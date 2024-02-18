@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
+using Mew.Core;
 
 namespace Doinject
 {
@@ -8,7 +8,7 @@ namespace Doinject
         where TFactory : IFactory
         where TResolver : IResolver<T>
     {
-        private AwaitableCompletionSource CachingCompletionSource { get; set; }
+        private MewCompletionSource CachingCompletionSource { get; set; }
         private TResolver InnerResolver { get; }
         public TargetTypeInfo FactoryType { get; }
         public override string ShortName => "Factory";
@@ -28,7 +28,7 @@ namespace Doinject
             if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
             if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                 return (TFactory)InstanceBag.OfType(TargetType).First();
-            CachingCompletionSource = new AwaitableCompletionSource();
+            CachingCompletionSource = new MewCompletionSource();
 
             var resolverType = typeof(TResolver);
             var instance = await container.InstantiateAsync<TFactory>(

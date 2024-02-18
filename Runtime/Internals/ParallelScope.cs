@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using UnityEngine;
+using Mew.Core;
 
 namespace Doinject
 {
@@ -7,7 +7,7 @@ namespace Doinject
     {
         private int Count { get; set; }
 
-        private AwaitableCompletionSource CompletionSource { get; } = new();
+        private MewCompletionSource CompletionSource { get; } = new();
 
         public bool Processing => Count > 0;
 

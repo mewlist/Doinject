@@ -1,14 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine;
+using Mew.Core;
 
 namespace Doinject
 {
     public sealed class TypeResolver<T, TInstance> : AbstractInternalResolver<T>, ICacheStrategy
         where TInstance : T
     {
-        private AwaitableCompletionSource CachingCompletionSource { get; set; }
+        private MewCompletionSource CachingCompletionSource { get; set; }
         private object[] Args { get; }
 
         public CacheStrategy CacheStrategy { get; }
@@ -31,7 +30,7 @@ namespace Doinject
                     if (CachingCompletionSource != null) await CachingCompletionSource.Awaitable;
                     if (InstanceBag.HasType(TargetType) && InstanceBag.Any(TargetType))
                         return (T)InstanceBag.OfType(TargetType).First();
-                    CachingCompletionSource = new AwaitableCompletionSource();
+                    CachingCompletionSource = new MewCompletionSource();
                     break;
                 case CacheStrategy.Transient:
                 default:
