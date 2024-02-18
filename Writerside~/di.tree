@@ -30,5 +30,6 @@
     <toc-element topic="injection.md"/>
     <toc-element topic="bindings.md"/>
     <toc-element topic="bindings_advanced.md"/>
+    <toc-element topic="unitask-integration.md"/>
     <toc-element topic="troubleshooting.md"/>
 </instance-profile>
