@@ -19,6 +19,8 @@ namespace Doinject
 {
     public class DIContainer : IReadOnlyDIContainer, IAsyncDisposable
     {
+        private static Dictionary<Type, TargetMethodsInfo> MethodInfoMap { get; } = new();
+
         private IReadOnlyDIContainer Parent { get; set; }
         private Scene Scene { get; set; }
         internal Dictionary<TargetTypeInfo, BinderContext> BinderMap { get; } = new();
@@ -281,8 +283,6 @@ namespace Doinject
             AfterInjectionProcessingScope.End();
             InvokeOnInjectedCallback(target, targetMethodsInfo).Forget();
         }
-
-        internal Dictionary<Type, TargetMethodsInfo> MethodInfoMap { get; } = new();
 
         private async ValueTask InvokePostInjectCallback(object target, TargetMethodsInfo methods)
         {
