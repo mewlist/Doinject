@@ -67,6 +67,7 @@ namespace Doinject.Tests
         public string Arg2 { get; }
         public List<int> Arg3 { get; }
 
+        [Inject]
         public WithArgsObject(int arg1, InjectedObject injectedObject, string arg2, List<int> arg3)
         {
             InjectedObject = injectedObject;
