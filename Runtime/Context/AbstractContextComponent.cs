@@ -26,7 +26,7 @@ namespace Doinject
 
         protected virtual void Awake()
         {
-            TaskQueue.Start(destroyCancellationToken);
+            TaskQueue.DisposeWith(destroyCancellationToken);
         }
 
         public void SetArgs(IContextArg arg)

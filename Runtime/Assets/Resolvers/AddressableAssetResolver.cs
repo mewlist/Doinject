@@ -25,7 +25,6 @@ namespace Doinject.Assets
         {
             TargetType = new TargetTypeInfo(typeof(T));
             RuntimeKey = runtimeKey;
-            TaskQueue.Start();
         }
 
         public async ValueTask<object> ResolveAsObjectAsync(DIContainer container)

@@ -84,7 +84,6 @@ namespace Doinject
                 Assert.IsTrue(go.GetComponent(TargetType.Type));
             else
                 throw new Exception("Prefab must be a GameObject or a MonoBehaviour.");
-
         }
 
         public override async ValueTask DisposeAsync()
