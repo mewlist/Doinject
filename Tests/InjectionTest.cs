@@ -144,5 +144,22 @@ namespace Doinject.Tests
             var instance = await container.ResolveAsync<PropertyInjectionComponent>();
             Assert.NotNull(instance.InjectedObject);
         }
+
+        [Test]
+        public async Task PropertyInjectionWithNonPublicSetterComponentTest()
+        {
+            container.BindTransient<PropertyInjectionWithNonPublicSetterComponent>();
+            container.BindTransient<InjectedObject>();
+            try
+            {
+                await container.ResolveAsync<PropertyInjectionWithNonPublicSetterComponent>();
+            }
+            catch (Exception e)
+            {
+                Assert.Pass();
+
+            }
+            Assert.Fail();
+        }
     }
 }

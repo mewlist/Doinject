@@ -10,10 +10,15 @@ namespace Doinject
 
         public TargetPropertiesInfo(Type targetType)
         {
-            foreach (var propertyInfo in targetType.GetProperties())
+            foreach (var propertyInfo in targetType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
-                if (propertyInfo.GetCustomAttributes(typeof(InjectAttribute), true).Length > 0)
-                    InjectProperties.Add(propertyInfo);
+                if (propertyInfo.GetCustomAttributes(typeof(InjectAttribute), true).Length <= 0)
+                    continue;
+
+                if (!propertyInfo.CanWrite || !propertyInfo.SetMethod.IsPublic)
+                    throw new Exception($"Property must have a public setter. {targetType.Name}.{propertyInfo.Name}");
+
+                InjectProperties.Add(propertyInfo);
             }
         }
 
