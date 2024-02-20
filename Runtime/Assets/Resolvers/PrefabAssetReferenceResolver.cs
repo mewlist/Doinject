@@ -38,7 +38,6 @@ namespace Doinject.Assets
             Under = under;
             WorldPositionStays = worldPositionStays;
             CacheStrategy = cacheStrategy;
-            TaskQueue.Start();
         }
 
         public override async ValueTask<T> ResolveAsync(IReadOnlyDIContainer container, object[] args = null)

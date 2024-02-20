@@ -20,11 +20,6 @@ namespace Doinject
         private TaskQueue TaskQueue { get; } = new();
         private bool Disposed { get; set; }
 
-        private void Awake()
-        {
-            TaskQueue.Start();
-        }
-
         private async void OnDestroy()
         {
             Disposed = true;
