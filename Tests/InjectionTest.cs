@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Mew.Core.TaskHelpers;
 using NUnit.Framework;
+using UnityEngine.SceneManagement;
 
 namespace Doinject.Tests
 {
@@ -12,7 +13,8 @@ namespace Doinject.Tests
         [SetUp]
         public void Setup()
         {
-            container = new DIContainer();
+            var scene = SceneManager.GetActiveScene();
+            container = new DIContainer(parent: null, scene);
         }
 
         [TearDown]
@@ -123,6 +125,41 @@ namespace Doinject.Tests
             await TaskHelperInternal.NextFrame();
             await TaskHelperInternal.NextFrame();
             Assert.That(instance.OnInjectedCalled, Is.True);
+        }
+
+        [Test]
+        public async Task PropertyInjectionTest()
+        {
+            container.BindTransient<PropertyInjectionObject>();
+            container.BindTransient<InjectedObject>();
+            var instance = await container.ResolveAsync<PropertyInjectionObject>();
+            Assert.NotNull(instance.InjectedObject);
+        }
+
+        [Test]
+        public async Task PropertyInjectionComponentTest()
+        {
+            container.BindTransient<PropertyInjectionComponent>();
+            container.BindTransient<InjectedObject>();
+            var instance = await container.ResolveAsync<PropertyInjectionComponent>();
+            Assert.NotNull(instance.InjectedObject);
+        }
+
+        [Test]
+        public async Task PropertyInjectionWithNonPublicSetterComponentTest()
+        {
+            container.BindTransient<PropertyInjectionWithNonPublicSetterComponent>();
+            container.BindTransient<InjectedObject>();
+            try
+            {
+                await container.ResolveAsync<PropertyInjectionWithNonPublicSetterComponent>();
+            }
+            catch (Exception e)
+            {
+                Assert.Pass();
+
+            }
+            Assert.Fail();
         }
     }
 }

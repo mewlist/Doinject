@@ -89,6 +89,11 @@ namespace Doinject.Tests
         }
     }
 
+    public class PropertyInjectionObject
+    {
+        [Inject] public InjectedObject InjectedObject { get; set; }
+    }
+
     public class InjectableObject : IDisposable
     {
         public InjectedObject InjectedObject { get; set; }
