@@ -7,7 +7,7 @@ You can install it from the Unity Package Manager.
 ### Installing MewCore
 
 <procedure id="procedure-install-mewcore">
-<p>First, please install the MewCore package, which is a dependency library.</p>
+<p>First, please install the MewCore package, which is a dependent library.</p>
 <step>Select <ui-path>Window > Package Manager</ui-path> from the Unity menu.</step>
 <step>Click the <control>+</control> button and select <control>Add package from git URL...</control>.</step>
 <step>Enter the following and click <control>Add</control>.
@@ -30,52 +30,56 @@ git@github.com:mewlist/Doinject.git
 </step>
 </procedure>
 
-## Setting the Entry Point
 
-The first thing to do is to open the scene where you want to apply the DI framework and place a ```SceneContext``` component in the hierarchy.
+## Determining the Entry Point
 
-Right-click in the Hierarchy view and select the <ui-path>Doinject > Create Scene Context</ui-path> menu.
+The first thing to do is to open the scene where you want to apply the DI framework and place the ```SceneContext``` component in the hierarchy.
+
+Right-click in the hierarchy view and select the <ui-path>Doinject > Create Scene Context</ui-path> menu.
 
 ![ContextMenu](CreateSceneContext.png)
 
-The placed scene context
+Scene context that has been placed
 
 ![SceneContext.png](SceneContext.png)
 
 Now, this scene functions as an execution environment for the DI framework.
-Try playing it once.
+Please try playing it once.
 
 ![SceneContextCreated.png](SceneContextCreated.png)
 
 When the scene is played, various loaders are generated like this.
 
-> Doinject can only access its features within the "context space".
-> The "context space" is defined for scenes and game objects, and the game object context has a space that follows the hierarchy of the hierarchy.
+> Doinject can only access its functions within the "context space".
+> The "context space" is defined for scenes and game objects, and the game object context has a hierarchical space according to the hierarchy.
 > Each context has a DI container and a scene loader hanging from it, functioning as an execution environment for the DI framework.
 {style="note"}
 
-## Your First Injection
+## First Injection
 
-Register an instance in the DI container and try injecting it.
-Instance registration (also known as binding) is performed from a component called an installer.
+Let's register an instance in the DI container and perform an injection.
+Instance registration (also known as binding) is done from a component called an installer.
 
 ### About Injection Points
 
-There are two ways to inject a type registered in the DI container into a specific instance:
+There are several ways to inject a type registered in the DI container into a specific instance:
 
-: * Constructor injection
-: * Method injection
+: * Constructor Injection
+: * Method Injection
+: * Field Injection
+: * Property Injection
 
 Constructor injection is automatically performed when an instance is created through the DI container.
 Method injection is performed by calling a method with the [Inject] attribute.
+Property and field injection inject an instance to a field or property with the [Inject] attribute.
 
-> Instances created through the DI container automatically attempt dependency injection in their constructors, so the [Inject] attribute is not necessary.
-> It's not a problem to explicitly add the [Inject] attribute, but you need to consider the dependence on that attribute definition.
+> Instances created through the DI container will automatically attempt dependency injection on their constructors, so the [Inject] attribute is not necessary.
+> It is not a problem to explicitly add the [Inject] attribute, but you need to consider the fact that you may become dependent on that attribute definition.
 {style="note"}
 
-In the case of components that inherit MonoBehaviour, you cannot use constructor injection.
-This is because Unity creates the component and you cannot explicitly call the constructor.
-Therefore, you always need to use method injection.
+In the case of components that inherit from MonoBehaviour, constructor injection cannot be used.
+This is because the generation of components is done by Unity, so you cannot explicitly call the constructor.
+Therefore, you need to use method injection, field injection, or property injection.
 
 ### Constructor Injection
 
@@ -95,9 +99,9 @@ class SomeClass
 ```C#
 class SomeClass
 {
-    // Methods with the [Inject] attribute are called by the DI container after the instance is created, passing SomeDependency as an argument
+    // A method with the [Inject] attribute is called by the DI container after the instance is created, passing SomeDependency as an argument
     [Inject]
-    public InjectMethod(SomeDependency dependency)
+    public void InjectMethod(SomeDependency dependency)
     {
         ...
     }
@@ -106,11 +110,11 @@ class SomeClass
 
 ## About the OnInjected() Callback
 
-Methods with the ```[OnInjected]``` attribute (no arguments, public) are automatically called when the instance injection is complete.
-It's not a problem if it's an asynchronous function with a ```Task``` or ```ValueTask``` return value.
+A method (no arguments, public) with the ```[OnInjected]``` attribute will automatically be called when the instance's injection is complete.
+It can also be an asynchronous function with a ```Task``` or ```ValueTask``` return value.
 
-Especially for components that inherit MonoBehaviour, there is a possibility that the timing of lifecycle methods such as Awake and Start and the timing of injection will be reversed.
-The ```[OnInjected]``` callback is designed to be called on the next frame after the injection is complete, so it can be used for the purpose of stabilizing the initialization order.
+Especially for components that inherit from MonoBehaviour, the timing of lifecycle methods such as Awake or Start and the timing of injections may be reversed.
+The ```[OnInjected]``` callback is designed to be called on the next frame after the injection is complete, so it can be used to stabilize the initialization order.
 
 ```C#
 class SomeClass
@@ -120,7 +124,7 @@ class SomeClass
         ...
     }
 
-    // This is automatically called when the instance injection is complete
+    // It is automatically called when the injection of the instance is complete
     [OnInjected]
     public void OnInjected()
     {
@@ -131,8 +135,7 @@ class SomeClass
 
 ## Creating an Installer Script
 
-An installer can be created from the `Doinject` menu. Right-click in the Project view and select
-`Create` > `Doinject` > `Component Binding Installer C# Script` to create an installer script.
+You can create an installer from the `Doinject` menu. By right-clicking in the Project view and selecting `Create` > `Doinject` > `Component Binding Installer C# Script`, an installer script is created.
 
 ![SceneContext](CreateComponentBindingInstaller.png)
 
@@ -168,7 +171,7 @@ public class Player
 }
 ```
 
-### Injection Target Script
+### Script to Inject
 ```C#
 using Doinject;
 using UnityEngine;
@@ -184,14 +187,14 @@ public class InjectTargetScript : MonoBehaviour, IInjectableComponent
 }
 ```
 
-The goal is for an instance of the Player object to be injected through `InjectTargetScript.Construct()`.
+The goal is for the instance of the Player object to be injected through `InjectTargetScript.Construct()`.
 
-> Types that inherit MonoBehaviour and are defined as components need to inherit IInjectableComponent.
-> Also, the method to which the [Inject] attribute is attached, which is the injection destination, needs to be public.
+> Types that inherit from MonoBehaviour and are defined as components need to inherit from IInjectableComponent.
+> Also, the method to be injected with the [Inject] attribute must be public.
 {style="note"}
 
-Now, let's write the binding in the installer.
-The binding is done in the Install method.
+Now, let's describe the binding in the installer.
+Bindings are done in the Install method.
 
 ```C#
     public override void Install(DIContainer container)
@@ -203,30 +206,31 @@ The binding is done in the Install method.
     }
 ```
 
+
 `.Bind<Player>()` is a declaration to get the Player class through the container.
 `.Args("Novice Player")` is an argument to pass to the constructor of the Player class.
 `.AsSingleton()` indicates that the Player object provided through the container is a singleton.
 
-Binding descriptions are done through a Fluent Interface like this.
-Depending on how you describe it, you can define flexible behaviors, such as acting as a factory or getting instances through an interface.
+Bindings are done through a Fluent Interface like this.
+Depending on how you describe it, you can define flexible behaviors such as acting as a factory or getting instances through an interface.
 
-> We use the term Singleton for convenience, but it represents the concept of being unique within the context space.
-> Unlike the singleton pattern, instances are not shared across context boundaries.
+> Although we use the term Singleton for convenience, it represents the concept of being unique within the context space.
+> Unlike the singleton pattern, instances are not shared beyond the boundaries of the context.
 {style="note"}
 
-Now, a Player object that is unique within the context has been registered in the DI container.
+Now, a Player object, which is unique within the context, has been registered in the DI container.
 
 Finally, let's place the installer in the scene.
 
 ![](InstallerPlacedOnScene.png)
 
-The component installer basically works wherever it is placed in the scene.
-Also, it's okay to have multiple different installers.
-For clarity, it's a good idea to set rules such as placing it under the entry point.
+Component installers basically function wherever they are placed in the scene.
+Also, it doesn't matter if there are multiple different installers.
+It's a good idea to set rules such as placing them under the entry point for clarity.
 
-## Verification of Operation
+## Checking the Operation
 
-Let's place the InjectTargetScript component we created earlier in the scene.
+Let's place the InjectTargetScript component we made earlier in the scene.
 
 ![](InjectTargetPlacedOnScene.png)
 
@@ -234,12 +238,11 @@ Now, let's play the scene.
 
 ![](InjectTargetInjected.png)
 
-You can confirm that the name of Player is set to "Novice Player".
+You can confirm that the name of the Player is set to "Novice Player".
 
-The argument specified by Args was passed to the constructor of Player (constructor injection), and
-You can confirm that the Player object was passed to the Construct method of InjectTargetScript (method injection).
+The argument specified by Args was passed to the constructor of Player (constructor injection), and the Player object was passed to the Construct method of InjectTargetScript (method injection).
 
-> At this time, you can think that the following processing is performed inside the DI container.
+> At this time, you can think of the following process being performed inside the DI container.
 > ```C#
 > var arg = "Novice Player";
 > var player = new Player(arg);
@@ -248,11 +251,11 @@ You can confirm that the Player object was passed to the Construct method of Inj
 > ```
 {style="note"}
 
-### Supplementary Information
+### Supplement
 
-Objects placed throughout the scene are all encompassed by the scene context.
-: * The scene context, when created, searches for installers that belong to its own context and binds according to their definitions.
-: * Once all installer bindings are complete, the DIContainer is in a state where it knows the types it should handle and how to resolve instances.
-: * After that, the scene context searches all game objects in the scene and looks for components that implement IInjectableComponent.
-: * When it finds a component that implements IInjectableComponent, it calls it to pass an instance that matches the arguments and types of the method specified by the [Inject] attribute.
-: * The scene context is created in accordance with the scene lifecycle and is destroyed along with the instances held by the container when the scene is destroyed.
+Objects placed throughout the scene are all covered by the scene context.
+: * The scene context, when created, searches for installers belonging to its own context and performs bindings according to their definitions.
+: * Once all the installers have completed their bindings, the DIContainer is in a state where it knows the types it should handle and how to resolve instances.
+: * After that, the scene context searches for all game objects in the scene and looks for components that implement IInjectableComponent.
+: * When a component implementing IInjectableComponent is found, it calls the method with the [Inject] attribute specified on that component to pass an instance that matches the argument and type.
+: * The scene context is created in sync with the scene lifecycle and is destroyed along with the instances held by the container when the scene is destroyed.

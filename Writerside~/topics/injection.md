@@ -19,7 +19,7 @@ public class SomeClass
 
 ## メソッドインジェクション
 
-メソッドインジェクションは、[Inject] 属性をつけたメソッドを呼び出すことで、依存を注入する方法です。
+メソッドインジェクションは、```[Inject]``` 属性をつけたメソッドを呼び出すことで、依存を注入する方法です。
 
 ```C#
 public class SomeClass
@@ -30,6 +30,32 @@ public class SomeClass
     {
         ...
     }
+}
+```
+
+## フィールドインジェクション
+
+フィールドインジェクションは、```[Inject]``` 属性をつけた ```public``` なフィールドに対して、依存を注入する方法です。
+
+```C#
+public class SomeClass
+{
+    // [Inject] 属性をつけた public なフィールドに SomeDependency を注入します
+    [Inject] public SomeDependency dependency;
+    ...
+}
+```
+
+## プロパティインジェクション
+
+プロパティインジェクションは、```[Inject]``` 属性をつけた ```public``` な setter を持つプロパティに対して、依存を注入する方法です。
+
+```C#
+public class SomeClass
+{
+    // [Inject] 属性をつけた public な setter を持つプロパティに SomeDependency を注入します
+    [Inject] public SomeDependency Dependency {get; set;}
+    ...
 }
 ```
 

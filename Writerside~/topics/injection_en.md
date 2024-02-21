@@ -1,15 +1,15 @@
 # Injection
 
-This section explains where to inject dependencies.
+This section explains where dependencies are injected.
 
 ## Constructor Injection
 
-Constructor injection is a method of injecting dependencies into the arguments of the constructor.
+Constructor injection is a method of injecting dependencies into the arguments of a constructor.
 
 ```C#
 public class SomeClass
 {
-    // When SomeClass is created, SomeDependency is automatically injected
+    // When SomeClass is instantiated, SomeDependency is automatically injected
     public SomeClass(SomeDependency dependency)
     {
         ...
@@ -19,7 +19,7 @@ public class SomeClass
 
 ## Method Injection
 
-Method injection is a method of injecting dependencies by calling a method with the [Inject] attribute.
+Method injection is a method of injecting dependencies by calling a method with the ```[Inject]``` attribute.
 
 ```C#
 public class SomeClass
@@ -33,11 +33,38 @@ public class SomeClass
 }
 ```
 
+## Field Injection
+
+Field injection is a method of injecting dependencies into ```public``` fields with the ```[Inject]``` attribute.
+
+```C#
+public class SomeClass
+{
+    // Inject SomeDependency into a public field with the [Inject] attribute
+    [Inject] public SomeDependency dependency;
+    ...
+}
+```
+
+## Property Injection
+
+Property injection is a method of injecting dependencies into properties with a ```public``` setter and the ```[Inject]``` attribute.
+
+```C#
+public class SomeClass
+{
+    // Inject SomeDependency into a property with a public setter and the [Inject] attribute
+    [Inject] public SomeDependency Dependency {get; set;}
+    ...
+}
+```
+
 ## OnInjected() Callback
 
-The ```OnInjected()``` method (no arguments, public) is automatically called when the instance's injection is complete. It can be an asynchronous function with a return value of ```Task```, ```ValueTask```, and there will be no problem.
 
-Especially in the case of components that inherit MonoBehaviour, the timing of lifecycle methods such as Awake and Start and the injection may be reversed. ```OnInjected()``` is designed to be called in the next frame after the injection is complete, so it can be used to stabilize the initialization order.
+The method ```OnInjected()``` (no arguments, public) is automatically called when the injection of an instance is completed. It can be an asynchronous function with a return value of ```Task``` or ```ValueTask```.
+
+In particular, for components that inherit from MonoBehaviour, the timing of lifecycle methods such as Awake or Start and the timing of injections may change. ```OnInjected()``` is designed to be called on the frame after injection is complete, so it can be used to stabilize the initialization order.
 
 ```C#
 public class SomeClass
@@ -49,7 +76,7 @@ public class SomeClass
         ...
     }
     
-    // It is automatically called when the injection of the instance is complete
+    // This is automatically called when the injection of an instance is completed
     [OnInjected]
     public void OnInjected()
     {
@@ -60,12 +87,12 @@ public class SomeClass
 
 ## Optional Injection
 
-By specifying the ```[Optional]``` attribute as an argument, you can skip the injection if the dependency cannot be resolved. The skipped argument will receive the ```default``` value of its type.
+By specifying the ```[Optional]``` attribute as an argument, if the dependency cannot be resolved, the injection can be skipped. The ```default``` value of the type is passed to skipped arguments.
 
 ```C#
 public class SomeClass
 {
-    // If the dependency of SomeDependency cannot be resolved, null is passed
+    // If the dependency on SomeDependency cannot be resolved, null is passed
     public SomeClass([Optional] SomeDependency dependency)
     {
         ...
@@ -75,8 +102,8 @@ public class SomeClass
 
 ## Dynamic Injection to Components (DynamicInjectable)
 
-Normally, if you create a component without going through a Factory, such as using the usual Instantiate after creating the context space, the component will not be injected.
+Normally, injections are not performed on components created without going through a Factory, such as using the regular Instantiate, after the context space is created.
 
-In such cases, you can usually perform the injection by creating an instance using a Factory, but it's a hassle to prepare a Factory every time.
+In such cases, you can perform injections by using a Factory to create instances, but it can be a hassle to prepare a Factory every time.
 
-In such cases, if you attach the ```DynamicInjectable``` component to the GameObject in advance, you can inject into the component that inherits IInjectableComponent attached to the same object, even when the instance is created with ```Object.Instantiate```.
+In such cases, you can attach the ```DynamicInjectable``` component to the GameObject in advance, and perform injections to components that inherit IInjectableComponent attached to the same object, even at the timing of instance creation with ```Object.Instantiate```.
