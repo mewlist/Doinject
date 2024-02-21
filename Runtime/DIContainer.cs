@@ -37,6 +37,7 @@ namespace Doinject
         private MethodInjector MethodInjector { get; }
         private PropertyInjector PropertyInjector { get; }
         private FieldInjector FieldInjector { get; }
+        private Ticker Ticker { get; }
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         internal IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
@@ -54,6 +55,7 @@ namespace Doinject
             MethodInjector = new MethodInjector(this);
             PropertyInjector = new PropertyInjector(this);
             FieldInjector = new FieldInjector(this);
+            Ticker = new Ticker();
             BindFromInstance<IReadOnlyDIContainer, DIContainer>(this);
         }
 
@@ -334,6 +336,8 @@ namespace Doinject
             await TaskHelper.NextFrame();
             foreach (var methodInfo in methods.OnInjectedMethods)
                 await InvokeCallback(target, methodInfo, InjectionProcessingScope);
+
+            Ticker.Add(target, methods.TickableMethods);
         }
 
         private async ValueTask InvokeCallback<T>(T target, MethodInfo callback, ParallelScope completionSource)
@@ -461,7 +465,7 @@ namespace Doinject
             if (CancellationTokenSource.IsCancellationRequested) return;
             CancellationTokenSource.Cancel();
             CancellationTokenSource.Dispose();
-
+            Ticker.Dispose();
             await Task.WhenAll(Resolvers.Select(x => x.Value.DisposeAsync().AsTask()));
             Resolvers.Clear();
             await ResolvedInstanceBag.DisposeAsync();
