@@ -29,7 +29,6 @@ namespace Doinject
             if (Context is null) return;
             loaded = false;
             await Shutdown();
-            ParentContext?.GameObjectContextLoader.Unregister(this);
             if (gameObject) Destroy(gameObject);
         }
 
