@@ -21,6 +21,7 @@ namespace Doinject
     {
         private static Dictionary<Type, TargetMethodsInfo> MethodInfoMap { get; } = new();
         private static Dictionary<Type, TargetPropertiesInfo> PropertyInfoMap { get; } = new();
+        private static Dictionary<Type, TargetFieldsInfo> FieldInfoMap { get; } = new();
 
         private IReadOnlyDIContainer Parent { get; set; }
         private Scene Scene { get; set; }
@@ -35,6 +36,7 @@ namespace Doinject
         private ConstructorInjector ConstructorInjector { get; }
         private MethodInjector MethodInjector { get; }
         private PropertyInjector PropertyInjector { get; }
+        private FieldInjector FieldInjector { get; }
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         internal IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
@@ -51,6 +53,7 @@ namespace Doinject
             ConstructorInjector = new ConstructorInjector(this);
             MethodInjector = new MethodInjector(this);
             PropertyInjector = new PropertyInjector(this);
+            FieldInjector = new FieldInjector(this);
             BindFromInstance<IReadOnlyDIContainer, DIContainer>(this);
         }
 
@@ -185,11 +188,13 @@ namespace Doinject
             var target = await ConstructorInjector.DoInject(targetType, args, scopedInstances);
             var targetMethodsInfo = GetTargetMethodInfo(targetType);
             var targetPropertiesInfo = GetTargetPropertyInfo(targetType);
+            var targetFieldsInfo = GetTargetFieldInfo(targetType);
 
             try
             {
                 await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
                 await PropertyInjector.DoInject(target, targetPropertiesInfo);
+                await FieldInjector.DoInject(target, targetFieldsInfo);
             }
             catch (Exception e)
             {
@@ -272,11 +277,13 @@ namespace Doinject
             var targetType = target.GetType();
             var targetMethodsInfo = GetTargetMethodInfo(targetType);
             var targetPropertiesInfo = GetTargetPropertyInfo(targetType);
+            var targetFieldsInfo = GetTargetFieldInfo(targetType);
 
             try
             {
                 await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
                 await PropertyInjector.DoInject(target, targetPropertiesInfo);
+                await FieldInjector.DoInject(target, targetFieldsInfo);
             }
             catch (Exception e)
             {
@@ -412,6 +419,16 @@ namespace Doinject
             targetPropertiesInfo = new TargetPropertiesInfo(targetType);
             PropertyInfoMap[targetType] = targetPropertiesInfo;
             return targetPropertiesInfo;
+        }
+
+        private TargetFieldsInfo GetTargetFieldInfo(Type targetType)
+        {
+            if (FieldInfoMap.TryGetValue(targetType, out var targetFieldsInfo))
+                return targetFieldsInfo;
+
+            targetFieldsInfo = new TargetFieldsInfo(targetType);
+            FieldInfoMap[targetType] = targetFieldsInfo;
+            return targetFieldsInfo;
         }
 
         public async ValueTask DisposeAsync()
