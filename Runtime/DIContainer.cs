@@ -186,9 +186,22 @@ namespace Doinject
             AfterInjectionProcessingScope.Begin();
 
             var target = await ConstructorInjector.DoInject(targetType, args, scopedInstances);
-            var targetMethodsInfo = GetTargetMethodInfo(targetType);
-            var targetPropertiesInfo = GetTargetPropertyInfo(targetType);
-            var targetFieldsInfo = GetTargetFieldInfo(targetType);
+
+            TargetMethodsInfo targetMethodsInfo;
+            TargetPropertiesInfo targetPropertiesInfo;
+            TargetFieldsInfo targetFieldsInfo;
+            try
+            {
+                targetMethodsInfo = GetTargetMethodInfo(targetType);
+                targetPropertiesInfo = GetTargetPropertyInfo(targetType);
+                targetFieldsInfo = GetTargetFieldInfo(targetType);
+            }
+            catch (Exception e)
+            {
+                InjectionProcessingScope.End();
+                AfterInjectionProcessingScope.End();
+                throw new FailedToInjectException(target, e);
+            }
 
             try
             {
@@ -275,9 +288,21 @@ namespace Doinject
             AfterInjectionProcessingScope.Begin();
 
             var targetType = target.GetType();
-            var targetMethodsInfo = GetTargetMethodInfo(targetType);
-            var targetPropertiesInfo = GetTargetPropertyInfo(targetType);
-            var targetFieldsInfo = GetTargetFieldInfo(targetType);
+            TargetMethodsInfo targetMethodsInfo;
+            TargetPropertiesInfo targetPropertiesInfo;
+            TargetFieldsInfo targetFieldsInfo;
+            try
+            {
+                targetMethodsInfo = GetTargetMethodInfo(targetType);
+                targetPropertiesInfo = GetTargetPropertyInfo(targetType);
+                targetFieldsInfo = GetTargetFieldInfo(targetType);
+            }
+            catch (Exception e)
+            {
+                InjectionProcessingScope.End();
+                AfterInjectionProcessingScope.End();
+                throw new FailedToInjectException(target, e);
+            }
 
             try
             {
