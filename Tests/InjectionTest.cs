@@ -154,10 +154,43 @@ namespace Doinject.Tests
             {
                 await container.ResolveAsync<PropertyInjectionWithNonPublicSetterComponent>();
             }
-            catch (Exception e)
+            catch (Exception _)
             {
                 Assert.Pass();
+            }
+            Assert.Fail();
+        }
 
+        [Test]
+        public async Task FieldInjectionTest()
+        {
+            container.BindTransient<FieldInjectionObject>();
+            container.BindTransient<InjectedObject>();
+            var instance = await container.ResolveAsync<FieldInjectionObject>();
+            Assert.NotNull(instance.injectedObject);
+        }
+
+        [Test]
+        public async Task FieldInjectionComponentTest()
+        {
+            container.BindTransient<FieldInjectionComponent>();
+            container.BindTransient<InjectedObject>();
+            var instance = await container.ResolveAsync<FieldInjectionComponent>();
+            Assert.NotNull(instance.injectedObject);
+        }
+
+        [Test]
+        public async Task FieldInjectionWithNonPublicSetterComponentTest()
+        {
+            container.BindTransient<FieldInjectionWithNonPublicObject>();
+            container.BindTransient<InjectedObject>();
+            try
+            {
+                await container.ResolveAsync<FieldInjectionWithNonPublicObject>();
+            }
+            catch (Exception _)
+            {
+                Assert.Pass();
             }
             Assert.Fail();
         }

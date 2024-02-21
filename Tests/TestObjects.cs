@@ -94,6 +94,16 @@ namespace Doinject.Tests
         [Inject] public InjectedObject InjectedObject { get; set; }
     }
 
+    public class FieldInjectionObject
+    {
+        [Inject] public InjectedObject injectedObject;
+    }
+
+    public class FieldInjectionWithNonPublicObject
+    {
+        [Inject] private InjectedObject injectedObject;
+    }
+
     public class InjectableObject : IDisposable
     {
         public InjectedObject InjectedObject { get; set; }
