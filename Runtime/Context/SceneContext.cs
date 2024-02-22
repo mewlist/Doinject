@@ -112,14 +112,26 @@ namespace Doinject
                 = GetComponentsUnderContext<GameObjectContext>()
                     .Where(x => x.enabled);
 
-            await ContextInternal.RawContainer.GenerateResolvers();
+            try
+            {
+                await ContextInternal.RawContainer.GenerateResolvers();
 
-            await Task.WhenAll(injectableComponents.Select(x
-                => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
+                await Task.WhenAll(injectableComponents.Select(x
+                    => ContextInternal.RawContainer.InjectIntoAsync(x).AsTask()));
 
-            while (InjectionProcessing)
-                await TaskHelper.NextFrame(destroyCancellationToken);
+                while (InjectionProcessing)
+                    await TaskHelper.NextFrame(destroyCancellationToken);
 
+            }
+            catch (Exception _)
+            {
+                if (ParentContext is not null && !ParentContext.Loaded)
+                {
+                    Debug.LogWarning("Parent context is not loaded. Shutdown SceneContext.");
+                    await Shutdown();
+                    return;
+                }
+            }
             using (new ContextSpaceScope(this))
             {
                 foreach (var gameObjectContext in gameObjectContexts)

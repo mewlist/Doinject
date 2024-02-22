@@ -18,8 +18,8 @@ namespace Doinject
 #if UNITY_EDITOR
             using var scope = new ParentContextLoadingScope(gameObject.scene);
 
-            handle = await UnifiedSceneLoader.LoadAsync(Scene, destroyCancellationToken);
-            var scene = await handle.GetScene();
+            handle = UnifiedSceneLoader.LoadAsync(Scene);
+            var scene = await handle.GetScene(destroyCancellationToken);
 
             var sceneContext = scene.FindFirstObjectByType<SceneContext>();
             if (!sceneContext)
