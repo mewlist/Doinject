@@ -141,6 +141,14 @@ namespace Doinject.Tests
         }
     }
 
+    public class InvalidTickableObject
+    {
+        [Tickable]
+        public void PostLateUpdate(int arg)
+        {
+        }
+    }
+
     public class FieldInjectionWithNonPublicObject
     {
         [Inject] private InjectedObject injectedObject;

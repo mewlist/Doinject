@@ -1,6 +1,4 @@
 ﻿using System;
-using Mew.Core;
-using UnityEngine.PlayerLoop;
 
 namespace Doinject
 {

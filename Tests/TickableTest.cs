@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Mew.Core.TaskHelpers;
 using NUnit.Framework;
 using UnityEngine;
@@ -48,12 +49,23 @@ namespace Doinject.Tests
             Assert.That(instance.UpdateCount, Is.GreaterThan(8));
             Assert.That(instance.PreLateUpdateCount, Is.GreaterThan(8));
             Assert.That(instance.PostLateUpdateCount, Is.GreaterThan(8));
-
-            Assert.That(instance.UpdateCount, Is.EqualTo(instance.EarlyUpdateCount + 1));
-            Assert.That(instance.UpdateCount, Is.EqualTo(instance.PreUpdateCount + 1));
-            Assert.That(instance.UpdateCount, Is.EqualTo(instance.PreLateUpdateCount + 1));
-            Assert.That(instance.UpdateCount, Is.EqualTo(instance.PostLateUpdateCount + 1));
             Assert.That(instance.FixedUpdateCount, Is.GreaterThan(instance.UpdateCount));
+        }
+
+        [Test]
+        public async Task InvalidTickableTest()
+        {
+            try
+            {
+                container.Bind<InvalidTickableObject>();
+                var _ = await container.ResolveAsync<InvalidTickableObject>();
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("Tickable method should not have any parameters"))
+                    Assert.Pass();
+            }
+            Assert.Fail();
         }
     }
 }

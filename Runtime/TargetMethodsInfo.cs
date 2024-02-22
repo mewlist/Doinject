@@ -42,6 +42,8 @@ namespace Doinject
                     var tickableAttr = methodInfo.GetCustomAttribute(typeof(TickableAttribute), true) as TickableAttribute;
                     if (!methodInfo.IsPublic)
                         throw new Exception($"Tickable method must be public. {targetType.Name}.{methodInfo.Name}()");
+                    if (methodInfo.GetParameters().Length > 0)
+                        throw new Exception("Tickable method should not have any parameters");
                     if (!TickableMethods.TryGetValue(tickableAttr.Timing, out var tickableMethods))
                         TickableMethods[tickableAttr.Timing] = new List<MethodInfo>();
                     TickableMethods[tickableAttr.Timing].Add(methodInfo);
