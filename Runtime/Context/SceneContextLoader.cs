@@ -17,6 +17,7 @@ namespace Doinject
         private IContext Context { get; set; }
         private List<IContext> ChildSceneContexts { get; } = new();
         public IReadOnlyList<IContext> ReadonlyChildSceneContexts => ChildSceneContexts;
+        public float Progression => SceneLoader.Progression;
         private TaskQueue TaskQueue { get; } = new();
         private bool Disposed { get; set; }
 
