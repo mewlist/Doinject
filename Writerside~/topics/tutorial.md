@@ -11,9 +11,14 @@ Unity Package Manager からインストールすることができます。
 <step>Unity のメニューから <ui-path>Window > Package Manager</ui-path> を選択します。</step>
 <step><control>+</control> ボタンをクリックし、<control>Add package from git URL...</control> を選択します。</step>
 <step>以下を入力し、<control>Add</control> をクリックします。
-<code-block>
-git@github.com:mewlist/MewCore.git
-</code-block>
+<tabs>
+<tab title="https">
+<code-block>https://github.com/mewlist/MewCore.git</code-block>
+</tab>
+<tab title="ssh">
+<code-block>git@github.com:mewlist/MewCore.git</code-block>
+</tab>
+</tabs>
 </step>
 </procedure>
 
@@ -24,9 +29,14 @@ git@github.com:mewlist/MewCore.git
 <step>Unity のメニューから <ui-path>Window > Package Manager</ui-path> を選択します。</step>
 <step><control>+</control> ボタンをクリックし、<control>Add package from git URL...</control> を選択します。</step>
 <step>以下を入力し、<control>Add</control> をクリックします。
-<code-block>
-git@github.com:mewlist/Doinject.git
-</code-block>
+<tabs>
+<tab title="https">
+<code-block>https://github.com/mewlist/Doinject.git</code-block>
+</tab>
+<tab title="ssh">
+<code-block>git@github.com:mewlist/Doinject.git</code-block>
+</tab>
+</tabs>
 </step>
 </procedure>
 
