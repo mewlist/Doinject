@@ -11,9 +11,14 @@ You can install it from the Unity Package Manager.
 <step>Select <ui-path>Window > Package Manager</ui-path> from the Unity menu.</step>
 <step>Click the <control>+</control> button and select <control>Add package from git URL...</control>.</step>
 <step>Enter the following and click <control>Add</control>.
-<code-block>
-git@github.com:mewlist/MewCore.git
-</code-block>
+<tabs>
+<tab title="https">
+<code-block>https://github.com/mewlist/MewCore.git</code-block>
+</tab>
+<tab title="ssh">
+<code-block>git@github.com:mewlist/MewCore.git</code-block>
+</tab>
+</tabs>
 </step>
 </procedure>
 
@@ -24,9 +29,14 @@ git@github.com:mewlist/MewCore.git
 <step>Select <ui-path>Window > Package Manager</ui-path> from the Unity menu.</step>
 <step>Click the <control>+</control> button and select <control>Add package from git URL...</control>.</step>
 <step>Enter the following and click <control>Add</control>.
-<code-block>
-git@github.com:mewlist/Doinject.git
-</code-block>
+<tabs>
+<tab title="https">
+<code-block>https://github.com/mewlist/Doinject.git</code-block>
+</tab>
+<tab title="ssh">
+<code-block>git@github.com:mewlist/Doinject.git</code-block>
+</tab>
+</tabs>
 </step>
 </procedure>
 
