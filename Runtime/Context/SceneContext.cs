@@ -20,7 +20,8 @@ namespace Doinject
         }
 
 
-        public override Scene Scene => gameObject.scene;
+        private Scene scene;
+        public override Scene Scene => scene;
 
         private bool isReverseLoaded;
         public override bool IsReverseLoaded => isReverseLoaded;
@@ -37,6 +38,7 @@ namespace Doinject
 
         protected override async void Awake()
         {
+            scene = gameObject.scene;
             SceneContextMap[Scene] = this;
 
             base.Awake();
