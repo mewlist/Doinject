@@ -33,10 +33,13 @@ var sceneContext = await sceneContextLoader.LoadAsync(firstScene, active: true);
 await sceneContextLoader.UnloadAsync(sceneContext);
 ```
 
-> これ以外の方法で直接シーンを閉じたときでも、シーンコンテクスト自体は自動的に閉じられますが、
-> Addressables でロードしたシーンをアンロードする場合は、そのハンドルが解放されなくなってしまうので、必ず、シーンローダーを使うか、コンテクストの破棄をするようにしてください。
-{style="warning"}
+## SceneManager でアンロードする
 
+通常の Unity が提供するシーンのアンロード機能を使って、シーンコンテクストを閉じても構いません。
+
+```C#
+SceneManager.UnloadSceneAsync(targetScene);
+```
 
 ## ゲームオブジェクトコンテクスト空間: Destroy() を呼び出す
 

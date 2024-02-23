@@ -1,9 +1,9 @@
 # Closing the Context Space
 
-There are several ways to close the context space.
-Please choose the appropriate method according to your situation.
+There are several ways to close a context space.
+Choose the method that suits your situation.
 
-## Calling Dispose
+## Call Dispose
 
 By calling ```Dispose()``` on the context, you can close the context.
 Objects belonging to their own context space are registered in the DI container as ```IContext```.
@@ -23,9 +23,9 @@ public async Task DisposeSceneContext()
 }
 ```
 
-## Scene Context Space: Calling SceneContextLoader.UnloadAsync()
+## Scene Context Space: Call SceneContextLoader.UnloadAsync()
 
-In the case of scene context, by keeping the SceneContext when loading the scene, you can close that context.
+In the case of a scene context, you can close the context by holding the SceneContext when you load the scene.
 
 ```C#
 var sceneContext = await sceneContextLoader.LoadAsync(firstScene, active: true);
@@ -33,14 +33,17 @@ var sceneContext = await sceneContextLoader.LoadAsync(firstScene, active: true);
 await sceneContextLoader.UnloadAsync(sceneContext);
 ```
 
-> Even when the scene is closed directly by methods other than this, the scene context itself is automatically closed, but
-> when unloading a scene loaded with Addressables, the handle will not be released, so always use the scene loader or dispose of the context.
-{style="warning"}
+## Unload with SceneManager
 
+You can also close the scene context using the scene unload function provided by Unity.
 
-## GameObject Context Space: Calling Destroy()
+```C#
+SceneManager.UnloadSceneAsync(targetScene);
+```
 
-When an object with a GameObject context attached is destroyed, that context is closed.
+## GameObject Context Space: Call Destroy()
+
+When you destroy an object with a GameObjectContext attached, the context is closed.
 
 ```C#
 Destroy(gameObjectContext);
