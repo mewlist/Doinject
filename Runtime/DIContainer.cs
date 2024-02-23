@@ -272,8 +272,16 @@ namespace Doinject
             if (go.GetComponent(typeof(IGameObjectContextRoot)))
                 return instance;
 
-            foreach (var component in go.GetComponentsInChildren(typeof(IInjectableComponent)))
-                await InjectIntoAsync(component, args);
+            try
+            {
+                foreach (var component in go.GetComponentsInChildren(typeof(IInjectableComponent)))
+                    await InjectIntoAsync(component, args);
+            }
+            catch (Exception e)
+            {
+                Object.Destroy(prefabInstance);
+                throw e;
+            }
 
             return instance;
         }
