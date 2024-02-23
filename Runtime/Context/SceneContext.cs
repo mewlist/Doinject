@@ -131,6 +131,7 @@ namespace Doinject
                     await Shutdown();
                     return;
                 }
+                throw;
             }
             using (new ContextSpaceScope(this))
             {
