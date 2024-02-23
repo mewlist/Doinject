@@ -29,11 +29,11 @@ Install via Unity Package Manager
 Please install the packages in the following order:
 
 ```
-git@github.com:mewlist/MewCore.git
+https://github.com/mewlist/MewCore.git
 ```
 
 ```
-git@github.com:mewlist/Doinject.git
+https://github.com/mewlist/Doinject.git
 ```
 
 # About Doinject

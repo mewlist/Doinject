@@ -24,11 +24,11 @@ Asynchronous DI Container for Unity
 以下の順にパッケージをインストールしてください。
 
 ```
-git@github.com:mewlist/MewCore.git
+https://github.com/mewlist/MewCore.git
 ```
 
 ```
-git@github.com:mewlist/Doinject.git
+https://github.com/mewlist/Doinject.git
 ```
 
 # Doinject について
