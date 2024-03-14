@@ -111,7 +111,7 @@ Doinject を使うと、Addressables のロード・解放を勝手にやって�
 
 ### インストーラー
 
-```
+```cs
 public class SomeInstaller : BindingInstallerScriptableObject
 {
     public override void Install(DIContainer container, IContextArg contextArg)
@@ -123,7 +123,7 @@ public class SomeInstaller : BindingInstallerScriptableObject
 
 ### コンストラクタインジェクション
 
-```
+```cs
 class ExampleClass
 {
     // Constructor Injection
@@ -134,7 +134,7 @@ class ExampleClass
 
 ### メソッドインジェクション
 
-```
+```cs
 class ExampleClass
 {
     // Method Injection
@@ -146,7 +146,7 @@ class ExampleClass
 
 ### MonoBehaviour へのインジェクション
 
-```
+```cs
 // Inherits IInjectableComponent
 class ExampleComponent : MonoBehaviour, IInjectableComponent
 {
