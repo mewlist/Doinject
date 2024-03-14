@@ -118,7 +118,7 @@ Additionally, by creating custom factories or custom resolvers, you can handle m
 
 ### Installer
 
-```
+```cs
 public class SomeInstaller : BindingInstallerScriptableObject
 {
     public override void Install(DIContainer container, IContextArg contextArg)
@@ -130,7 +130,7 @@ public class SomeInstaller : BindingInstallerScriptableObject
 
 ### Constructor Injection
 
-```
+```cs
 class ExampleClass
 {
     // Constructor Injection
@@ -141,7 +141,7 @@ class ExampleClass
 
 ### Method Injection
 
-```
+```cs
 class ExampleClass
 {
     // Method Injection
@@ -153,7 +153,7 @@ class ExampleClass
 
 ### Injection to MonoBehaviour
 
-```
+```cs
 // Inherits IInjectableComponent
 class ExampleComponent : MonoBehaviour, IInjectableComponent
 {
