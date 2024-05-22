@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -50,7 +49,6 @@ namespace Doinject
             }
 
             if (!ComponentBindings.Any()) return;
-
 
             var type = container.GetType();
             var methods = type.GetMethods();

@@ -207,9 +207,10 @@ namespace Doinject
 
             try
             {
-                await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
-                await PropertyInjector.DoInject(target, targetPropertiesInfo);
-                await FieldInjector.DoInject(target, targetFieldsInfo);
+                await TaskHelper.WhenAll(
+                    MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances),
+                    PropertyInjector.DoInject(target, targetPropertiesInfo),
+                    FieldInjector.DoInject(target, targetFieldsInfo));
             }
             catch (Exception e)
             {
@@ -217,6 +218,7 @@ namespace Doinject
                 AfterInjectionProcessingScope.End();
                 throw new FailedToInjectException(target, e);
             }
+            TryMarkInjected(targetType);
 
             InjectionProcessingScope.End();
             await InvokePostInjectCallback(target, targetMethodsInfo);
@@ -316,9 +318,10 @@ namespace Doinject
 
             try
             {
-                await MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances);
-                await PropertyInjector.DoInject(target, targetPropertiesInfo);
-                await FieldInjector.DoInject(target, targetFieldsInfo);
+                await TaskHelper.WhenAll(
+                    MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances),
+                    PropertyInjector.DoInject(target, targetPropertiesInfo),
+                    FieldInjector.DoInject(target, targetFieldsInfo));
             }
             catch (Exception e)
             {
@@ -326,6 +329,7 @@ namespace Doinject
                 AfterInjectionProcessingScope.End();
                 throw new FailedToInjectException(target, e);
             }
+            TryMarkInjected(targetType);
 
             InjectionProcessingScope.End();
             await InvokePostInjectCallback(target, targetMethodsInfo);
@@ -364,7 +368,7 @@ namespace Doinject
             else callback.Invoke(target, Array.Empty<object>());
         }
 
-        internal void MarkInjected(Type resolverType)
+        private void TryMarkInjected(Type resolverType)
         {
             if (!Resolvers.TryGetValue(new TargetTypeInfo(resolverType), out var resolver)) return;
 
@@ -406,14 +410,13 @@ namespace Doinject
                 return instance;
             }
 
-            if (Parent is DIContainer raw)
-            {
-                if (raw.InjectProcessing)
-                    throw new Exception("Parent container is processing injection. Use OnInjected callback.");
-                return await Parent.ResolveAsync(targetType);
-            }
+            if (Parent is not DIContainer raw)
+                throw new FailedToResolveException(targetType);
 
-            throw new FailedToResolveException(targetType);
+            if (raw.InjectProcessing)
+                throw new Exception("Parent container is processing injection. Use OnInjected callback.");
+
+            return await Parent.ResolveAsync(targetType);
         }
 
         public bool HasBinding<T>()
@@ -474,7 +477,10 @@ namespace Doinject
             CancellationTokenSource.Cancel();
             CancellationTokenSource.Dispose();
             Ticker.Dispose();
-            await Task.WhenAll(Resolvers.Select(x => x.Value.DisposeAsync().AsTask()));
+            var tasks = Resolvers
+                .Select(x => x.Value.DisposeAsync())
+                .ToArray();
+            await TaskHelper.WhenAll(tasks);
             Resolvers.Clear();
             await ResolvedInstanceBag.DisposeAsync();
             await InstanceBag.DisposeAsync();

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reflection;
+using System.Threading.Tasks;
+using Mew.Core.TaskHelpers;
 
 namespace Doinject
 {
@@ -18,19 +20,18 @@ namespace Doinject
             TargetPropertiesInfo properties)
         {
             if (!properties.Any()) return;
-            var targetType = target.GetType();
-            var resolverType = targetType;
 
-            if (targetType == typeof(IInjectableComponent))
-                resolverType = target.GetType();
+            var tasks = new ValueTask[properties.InjectProperties.Count];
+            for (var i = 0; i < properties.InjectProperties.Count; i++)
+                tasks[i] = ResolveAndInject(target, properties.InjectProperties[i]);
 
-            Container.MarkInjected(resolverType);
+            await TaskHelper.WhenAll(tasks);
+        }
 
-            foreach (var propertyInfo in properties.InjectProperties)
-            {
-                var instance = await Container.ResolveAsync(propertyInfo.PropertyType);
-                propertyInfo.SetValue(target, instance);
-            }
+        private async ValueTask ResolveAndInject<T>(T target, PropertyInfo propertyInfo)
+        {
+            var instance = await Container.ResolveAsync(propertyInfo.PropertyType);
+            propertyInfo.SetValue(target, instance);
         }
     }
 }

@@ -47,7 +47,8 @@ namespace Doinject
 
         private async ValueTask<T> Instantiate(IReadOnlyDIContainer container, object[] args)
         {
-            return await container.InstantiateAsync<TInstance>(Args ?? args);
+            var instance = await container.InstantiateAsync<TInstance>(Args ?? args);
+            return instance;
         }
 
         public async Task TryCacheAsync(DIContainer container)
