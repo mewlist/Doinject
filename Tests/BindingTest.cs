@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.SceneManagement;
@@ -128,56 +129,12 @@ namespace Doinject.Tests
             Assert.AreSame(instances[0], instances[1]);
         }
 
-
-        public class Player
-        {
-            public PlayerId PlayerId { get; set; }
-            public string Name { get; set; }
-            public Player(PlayerId playerId, string name)
-            {
-                PlayerId = playerId;
-                Name = name;
-            }
-        }
-
-        public struct PlayerId
-        {
-            public PlayerId(string id) { Id = id; }
-            public string Id { get; set; }
-        }
-
-        public class ApiMock
-        {
-            public async Task<Player> Get(PlayerId id)
-            {
-                await Task.Delay(300);
-                return new Player(id, $"Player_{id.Id}");
-            }
-        }
-
-        public class CustomResolver : IResolver<Player>
-        {
-            private ApiMock ApiMock { get; set; }
-            public PlayerId PlayerId { get; set; }
-
-            [Inject] public void Construct(ApiMock apiMock, PlayerId id)
-            {
-                ApiMock = apiMock;
-                PlayerId = id;
-            }
-
-            public async ValueTask<Player> ResolveAsync(IReadOnlyDIContainer container, object[] args)
-            {
-                return await ApiMock.Get(PlayerId);
-            }
-        }
-
         [Test]
         public async Task CustomResolverBindingTest()
         {
             container.Bind<ApiMock>();
             container.Bind<PlayerId>().FromInstance(new PlayerId("DummyId"));
-            container.Bind<Player>().FromResolver<CustomResolver>();
+            container.Bind<Player>().FromResolver<PlayerApiResolver>();
             var instance = await container.ResolveAsync<Player>();
             Assert.That(instance.PlayerId.Id, Is.EqualTo("DummyId"));
             Assert.That(instance.Name, Does.Contain("DummyId"));
@@ -235,6 +192,27 @@ namespace Doinject.Tests
             {
                 container.Unbind<InjectedObject>();
             });
+        }
+
+        [Test]
+        public async Task ParallelInjectionTest()
+        {
+            container.Bind<InjectedObject>().FromResolver<GenericDelayedResolver<InjectedObject>>();
+            container.Bind<Player>().FromResolver<GenericDelayedResolver<Player>>();
+            container.Bind<NovicePlayer>().FromResolver<GenericDelayedResolver<NovicePlayer>>();
+            container.Bind<ComplexInjectableObject>();
+
+            var sw = new Stopwatch();
+            sw.Start();
+            var instance = await container.ResolveAsync<ComplexInjectableObject>();
+            sw.Stop();
+
+            Assert.That(sw.ElapsedMilliseconds, Is.LessThan(2000));
+            Assert.That(instance.InjectedObjectA, Is.EqualTo(instance.InjectedObjectB));
+            Assert.That(instance.PlayerFromProperty, Is.EqualTo(instance.PlayerFromMethod1));
+            Assert.That(instance.PlayerFromProperty, Is.EqualTo(instance.PlayerFromMethod2));
+            Assert.That(instance.NovicePlayerFromProperty, Is.EqualTo(instance.NovicePlayerFromMethod1));
+            Assert.That(instance.NovicePlayerFromProperty, Is.EqualTo(instance.NovicePlayerFromMethod2));
         }
     }
 }
