@@ -200,37 +200,6 @@ namespace Doinject.Tests
             Assert.That(instance.InjectedObject, Is.EqualTo(injectedInstance));
         }
 
-        private class PlayerFactory : IFactory<IPlayer>
-        {
-            private PlayerLevel PlayerLevel { get; set; }
-            // ReSharper disable once UnusedMember.Global
-            [Inject] public void Construct(PlayerLevel playerLevel)
-            {
-                PlayerLevel = playerLevel;
-            }
-            public ValueTask<IPlayer> CreateAsync()
-            {
-                var player = PlayerLevel.Value < 10
-                    ? (IPlayer)new NovicePlayer()
-                    : new ElderPlayer();
-                player.Level = PlayerLevel.Value;
-                return new ValueTask<IPlayer>(player);
-            }
-        }
-
-        private class PlayerFactoryWithArgs : IFactory<int, IPlayer>
-        {
-            // ReSharper disable once UnusedMember.Global
-            public ValueTask<IPlayer> CreateAsync(int arg1)
-            {
-                var player = arg1 < 10
-                    ? (IPlayer)new NovicePlayer()
-                    : new ElderPlayer();
-                player.Level = arg1;
-                return new ValueTask<IPlayer>(player);
-            }
-        }
-
         [TestCase(9)]
         [TestCase(99)]
         public async Task CustomFactoryTest(int playerLevel)
@@ -266,36 +235,6 @@ namespace Doinject.Tests
         }
 
 
-        internal interface ISomeApi
-        {
-            public ValueTask<Player> GetPlayerAsync();
-        }
-
-        private class SomeApi : ISomeApi
-        {
-            public async ValueTask<Player> GetPlayerAsync()
-            {
-                await Task.Delay(100);
-                return new Player { Level = 55 };
-            }
-        }
-
-        private class AsyncPlayerFactory : IFactory<IPlayer>
-        {
-            private ISomeApi Api { get; set; }
-
-            [Inject] public void Construct(ISomeApi someApi)
-            {
-                Api = someApi;
-            }
-
-            public async ValueTask<IPlayer> CreateAsync()
-            {
-                var player = await Api.GetPlayerAsync();
-                return player;
-            }
-        }
-
         [Test]
         public async Task AsyncCustomFactoryTest()
         {
@@ -306,22 +245,6 @@ namespace Doinject.Tests
             var factory = await container.ResolveAsync<AsyncPlayerFactory>();
             var instance = await factory.CreateAsync();
             Assert.That(instance.Level, Is.EqualTo(55));
-        }
-
-        public class WithPlayerResolverFactory : Factory<IPlayer>
-        {
-            private PlayerLevel PlayerLevel { get; set; }
-
-            // ReSharper disable once UnusedMember.Global
-            [Inject] public void Construct(PlayerLevel playerLevel)
-                => PlayerLevel = playerLevel;
-
-            public override async ValueTask<IPlayer> CreateAsync()
-            {
-                var player = await Resolver.ResolveAsync(DIContainer);
-                player.Level = PlayerLevel.Value;
-                return player;
-            }
         }
 
         [TestCase(9)]
@@ -339,55 +262,5 @@ namespace Doinject.Tests
             Assert.That(instance, Is.TypeOf<ElderPlayer>());
             Assert.That(instance.Level, Is.EqualTo(playerLevel));
         }
-
-        public sealed class PlayerLevel
-        {
-            public int Value { get; set; }
-            public PlayerLevel(int level) { Value = level; }
-        }
-
-        public interface IPlayer
-        {
-            int Level { get; set; }
-        }
-
-        public class Player : IPlayer
-        {
-            public int Level { get; set; }
-        }
-
-        private class InjectablePlayer : IPlayer
-        {
-            public int Level { get; set; }
-
-            public InjectablePlayer(int level)
-            {
-                Level = level;
-            }
-        }
-
-        public class AbstractManyArgsObject
-        {
-            public List<Player> Players { get; } = new();
-        }
-        private class TwoArgsObject : AbstractManyArgsObject
-        {
-            public TwoArgsObject(Player player1, Player player2)
-                => Players.AddRange(new[] { player1, player2 });
-        }
-        private class ThreeArgsObject : AbstractManyArgsObject
-        {
-            public ThreeArgsObject(Player player1, Player player2, Player player3)
-                => Players.AddRange(new[] { player1, player2, player3 });
-        }
-
-        public class FourArgsObject : AbstractManyArgsObject
-        {
-            public FourArgsObject(Player player1, Player player2, Player player3, Player player4)
-                => Players.AddRange(new[] { player1, player2, player3, player4 });
-        }
-
-        private sealed class NovicePlayer : Player { }
-        private sealed class ElderPlayer : Player { }
     }
 }
