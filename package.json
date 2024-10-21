@@ -1,7 +1,7 @@
 {
   "name": "st.mewli.di",
   "displayName": "Doinject",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "unity": "2022.3",
   "description": "Asynchronous DIContainer for Unity",
   "author": {
