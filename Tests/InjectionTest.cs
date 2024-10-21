@@ -154,7 +154,7 @@ namespace Doinject.Tests
             {
                 await container.ResolveAsync<PropertyInjectionWithNonPublicSetterComponent>();
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 Assert.Pass();
             }

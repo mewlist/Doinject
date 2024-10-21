@@ -21,7 +21,17 @@ namespace Doinject
         {
             base.Awake();
             if (ContextSpaceScope.Scoped) return;
-            await Boot(FindParentContext());
+            var parentContext = FindParentContext();
+            switch (parentContext)
+            {
+                case null:
+                case SceneContext { Loaded: false }:
+                    // This context will be loaded by the parent scene context.
+                    return;
+                default:
+                    await Boot(FindParentContext());
+                    break;
+            }
         }
 
         private async void OnDestroy()
@@ -115,7 +125,9 @@ namespace Doinject
             }
 
             if (SceneContext.TryGetSceneContext(gameObject.scene, out var sceneContext))
+            {
                 return sceneContext;
+            }
 
             return ProjectContext.Instance;
         }
