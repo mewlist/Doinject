@@ -18,11 +18,10 @@ namespace Doinject.Tests
         private string testGameObjectContextPrefabPath;
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             testScenePath = AssetDatabase.GUIDToAssetPath(TestSceneGuid);
             testGameObjectContextPrefabPath = AssetDatabase.GUIDToAssetPath(DynamicInjectionPrefabGuid);
-
         }
 
         [TearDown]
