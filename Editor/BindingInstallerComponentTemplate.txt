@@ -1,4 +1,5 @@
 using Doinject;
+using UnityEngine;
 
 public class #SCRIPTNAME# : MonoBehaviour, IBindingInstaller
 {
