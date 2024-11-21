@@ -125,15 +125,12 @@ namespace Doinject
                     await TaskHelper.NextFrame(destroyCancellationToken);
 
             }
-            catch (Exception _)
+            catch (Exception)
             {
-                if (ParentContext is not null && !ParentContext.Loaded)
-                {
-                    Debug.LogWarning("Parent context is not loaded. Shutdown SceneContext.");
-                    await Shutdown();
-                    return;
-                }
-                throw;
+                if (ParentContext is null || ParentContext.Loaded) throw;
+                Debug.LogWarning("Parent context is not loaded. Shutdown SceneContext.");
+                await Shutdown();
+                return;
             }
             using (new ContextSpaceScope(this))
             {
