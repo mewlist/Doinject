@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -59,6 +60,14 @@ namespace Doinject
 
             foreach (var component in ComponentBindings)
             {
+                if (component is null)
+                {
+                    Debug.LogException(
+                        new ArgumentException("Null binding found on BindingInstallerComponent.", nameof(ComponentBindings)),
+                        this);
+                    continue;
+                }
+
                 var componentType = component.GetType();
                 var genericMethod = method.MakeGenericMethod(componentType);
                 genericMethod.Invoke(container, new object[] { component });
