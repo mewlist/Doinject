@@ -105,17 +105,26 @@ namespace Doinject.Context
 
         private void OnTreeItemSelected(IEnumerable<object> selection)
         {
-            selectedNode = selection.First() as ContextNode;
-            bindingDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings.ToList();
-            var id = 0;
-            treeViewDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings
-                .Select(x =>
-                    new TreeViewItemData<Item>(id++,
-                        new Item {
-                            Type = x.Key,
-                            Resolver = x.Value,
-                        }))
-                .ToList();
+            selectedNode = selection.FirstOrDefault() as ContextNode;
+            if (selectedNode is not null)
+            {
+                bindingDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings.ToList();
+                var id = 0;
+                treeViewDataSource = selectedNode.Context.RawContainer.ReadOnlyBindings
+                    .Select(x =>
+                        new TreeViewItemData<Item>(id++,
+                            new Item {
+                                Type = x.Key,
+                                Resolver = x.Value,
+                            }))
+                    .ToList();
+            }
+            else
+            {
+                bindingDataSource = new List<KeyValuePair<TargetTypeInfo, IInternalResolver>>();
+                treeViewDataSource = new List<TreeViewItemData<Item>>();
+            }
+
             instancesView.SetRootItems(treeViewDataSource);
             instancesView.Rebuild();
         }
