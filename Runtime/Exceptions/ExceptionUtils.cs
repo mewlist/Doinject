@@ -7,14 +7,23 @@ namespace Doinject
         private const string MsgColor = "#FFC107";
         public static string ToExceptionMessage(this string message, Exception inner = null)
         {
-            return $"<color={MsgColor}>{message}{InnerMessage(inner)}</color>";
+            return $"<color={MsgColor}>{message}</color>\n{LeafMessage(inner)}\n\n";
         }
 
         private static string InnerMessage(Exception inner)
         {
             return inner is null
                 ? string.Empty
-                : $"\n > {inner.Message}";
+                : $"> {ToExceptionMessage(inner.Message, inner.InnerException)}";
+        }
+
+        private static string LeafMessage(Exception exception)
+        {
+            return exception is null
+                ? string.Empty
+                : exception.InnerException is null
+                    ? $"{exception}"
+                    : LeafMessage(exception.InnerException);
         }
 
 
