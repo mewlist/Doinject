@@ -55,6 +55,8 @@ namespace Doinject.Tests
         [Test]
         public async Task InvalidTickableTest()
         {
+            using var exceptionTestScope = new ExceptionTestScope();
+
             try
             {
                 container.Bind<InvalidTickableObject>();
