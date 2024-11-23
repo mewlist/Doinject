@@ -208,7 +208,7 @@ namespace Doinject
                 InjectionProcessingScope.End();
                 AfterInjectionProcessingScope.End();
                 var exception = new FailedToInjectException(target, e);
-                Debug.LogError(exception);
+                Debug.LogError(exception.Message);
                 throw exception;
             }
 
@@ -313,7 +313,7 @@ namespace Doinject
                 InjectionProcessingScope.End();
                 AfterInjectionProcessingScope.End();
                 var exception = new FailedToInjectException(target, e);
-                Debug.LogError(exception);
+                Debug.LogError(exception.Message);
                 throw exception;
             }
 
