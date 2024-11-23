@@ -197,16 +197,7 @@ namespace Doinject
                 targetMethodsInfo = GetTargetMethodInfo(targetType);
                 targetPropertiesInfo = GetTargetPropertyInfo(targetType);
                 targetFieldsInfo = GetTargetFieldInfo(targetType);
-            }
-            catch (Exception e)
-            {
-                InjectionProcessingScope.End();
-                AfterInjectionProcessingScope.End();
-                throw new FailedToInjectException(target, e);
-            }
 
-            try
-            {
                 await TaskHelper.WhenAll(
                     MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances),
                     PropertyInjector.DoInject(target, targetPropertiesInfo),
@@ -216,8 +207,11 @@ namespace Doinject
             {
                 InjectionProcessingScope.End();
                 AfterInjectionProcessingScope.End();
-                throw new FailedToInjectException(target, e);
+                var exception = new FailedToInjectException(target, e);
+                Debug.LogError(exception);
+                throw exception;
             }
+
             TryMarkInjected(targetType);
 
             InjectionProcessingScope.End();
@@ -308,16 +302,7 @@ namespace Doinject
                 targetMethodsInfo = GetTargetMethodInfo(targetType);
                 targetPropertiesInfo = GetTargetPropertyInfo(targetType);
                 targetFieldsInfo = GetTargetFieldInfo(targetType);
-            }
-            catch (Exception e)
-            {
-                InjectionProcessingScope.End();
-                AfterInjectionProcessingScope.End();
-                throw new FailedToInjectException(target, e);
-            }
 
-            try
-            {
                 await TaskHelper.WhenAll(
                     MethodInjector.DoInject(target, targetMethodsInfo, args, scopedInstances),
                     PropertyInjector.DoInject(target, targetPropertiesInfo),
@@ -327,8 +312,11 @@ namespace Doinject
             {
                 InjectionProcessingScope.End();
                 AfterInjectionProcessingScope.End();
-                throw new FailedToInjectException(target, e);
+                var exception = new FailedToInjectException(target, e);
+                Debug.LogError(exception);
+                throw exception;
             }
+
             TryMarkInjected(targetType);
 
             InjectionProcessingScope.End();

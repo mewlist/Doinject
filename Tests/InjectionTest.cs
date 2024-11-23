@@ -73,6 +73,8 @@ namespace Doinject.Tests
         [Test]
         public void BindingNotFoundTest()
         {
+            using var exceptionTestScope = new ExceptionTestScope();
+
             container.BindTransient<MethodInjectionTestClass>();
             Assert.IsTrue(container.HasBinding<MethodInjectionTestClass>());
             Assert.ThrowsAsync<FailedToResolveException>(async () =>
@@ -148,6 +150,8 @@ namespace Doinject.Tests
         [Test]
         public async Task PropertyInjectionWithNonPublicSetterComponentTest()
         {
+            using var exceptionTestScope = new ExceptionTestScope();
+
             container.BindTransient<PropertyInjectionWithNonPublicSetterComponent>();
             container.BindTransient<InjectedObject>();
             try
@@ -182,6 +186,8 @@ namespace Doinject.Tests
         [Test]
         public async Task FieldInjectionWithNonPublicSetterComponentTest()
         {
+            using var exceptionTestScope = new ExceptionTestScope();
+
             container.BindTransient<FieldInjectionWithNonPublicObject>();
             container.BindTransient<InjectedObject>();
             try
