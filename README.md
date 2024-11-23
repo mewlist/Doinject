@@ -41,15 +41,19 @@ https://github.com/mewlist/Doinject.git
 Doinject is an asynchronous DI (Dependency Injection) framework for Unity.
 
 The concept of asynchronous DI containers is the starting point.
-Unity 2022 LTS / 2023.2 are supported.
+Unity 2022 LTS / Unity 6 are supported.
 
 ## Concepts
 
 ### Asynchronous DI Containers
 
-The framework supports the creation and release of asynchronous instances.
-This allows handling instances through the Addressables Asset Systems as well.
-Moreover, you can delegate the creation of time-consuming instances to custom factories.
+Typical DI containers perform a synchronous process when generating registered types.
+However, it cannot support the asynchronous instantiation function used in Unity or instance creation methods that require some kind of asynchronous processing.
+
+By introducing Doinject, you can use a DI container that supports instance creation and release through asynchronous processing.
+This allows instance creation with asynchronous loading through Addressables Asset Systems, or instance creation based on information loaded from asynchronous IO.
+It becomes possible to perform more flexible instance management with simple descriptions.
+By creating a custom factory, you can create instances that involve any asynchronous processing.
 
 ### Context Space Consistent with Unity's Lifecycle
 
@@ -113,6 +117,21 @@ Additionally, by creating custom factories or custom resolvers, you can handle m
 | ```container```<br />```.Bind<SomeComponent>()```<br />```.AsFactory();```              | ```var resolver = new MonoBehaviourResolver<SomeComponent>()```<br/><br/>```new Factory<SomeComponent>(resolver))```<br />``` as IFactory<SomeComponent>``` |
 | ```container```<br />```.Bind<SomeClass>()```<br />```.AsCustomFactory<MyFactory>();``` | ```new CustomFactoryResolver<MyFactory>() as IFactory<SomeClass>```                                                                          |
 
+
+Can also be combined with Addressables.
+You can also create a factory that instantiates the asynchronously loaded prefab and calls GetComponent<T>() on it.
+```
+container
+  .BindAssetReference<SomeComponentOnAddressalbesPrefab>(assetReference)
+  .AsFactory<SomeComponentOnAddressalbesPrefab>();
+```
+```
+[Inject]
+void Construct(IFactory<SomeComponentOnAddressalbesPrefab> factory)
+{
+  var instance = await factory.CreateAsync();
+}
+```
 
 ## Injection
 

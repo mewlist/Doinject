@@ -36,15 +36,19 @@ https://github.com/mewlist/Doinject.git
 Doinject は、Unity 向けの非同期 DI(Dependency Injection) フレームワークです。
 
 非同期DIコンテナというコンセプトが起点となっています。
-Unity 2022 LTS / 2023.2 以降をサポートします。
+Unity 2022 LTS / Unity 6 以降をサポートします。
 
 ## コンセプト
 
 ### 非同期DIコンテナ
 
-非同期なインスタンスの生成と解放をフレームワーク側でサポートします。
-これにより、Addressables Asset Systems を通したインスタンスも扱うことができます。
-また、カスタムファクトリを自分で作れば、時間のかかるインスタンスの生成を任せてしまうこともできます。
+一般的な DI コンテナは登録された型を生成する際、同期的な処理を行います。
+しかしながら、Unity で用いられる非同期インスタンス生成機能や、何らかの非同期処理を必要とするインスタンス生成方法には対応できません。
+
+Doinject を導入することで非同期処理によるインスタンスの生成と解放をサポートする DI コンテナを利用することができます。
+これにより、Addressables Asset Systems を通した非同期ローディングを伴うインスタンス生成や、非同期IOからロードした情報に基づくインスタンス生成といった、
+より柔軟なインスタンス管理を平易な記述で行うことが可能となります。
+カスタムファクトリを作成することであらゆる非同期処理を伴うインスタンス生成に対応することができます。
 
 ### Unity のライフサイクルと矛盾しないコンテクスト空間
 
@@ -90,7 +94,6 @@ Doinject を使うと、Addressables のロード・解放を勝手にやって�
 
 ### Addressables バインディング
 
-
 | 記述                                                                                         | リゾルバの動作　                                                                                                                                                                                      　             |
 |--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ```container```<br />```.BindAssetReference<SomeAddressalbesObject>(assetReference);```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(assetReference)```<br/><br/>```await handle.Task```　                                                                                    |
@@ -106,6 +109,20 @@ Doinject を使うと、Addressables のロード・解放を勝手にやって�
 | ```container```<br />```.Bind<SomeComponent>()```<br />```.AsFactory();```              | ```var resolver = new MonoBehaviourResolver<SomeComponent>()```<br/><br/>```new Factory<SomeComponent>(resolver))```<br />``` as IFactory<SomeComponent>``` |
 | ```container```<br />```.Bind<SomeClass>()```<br />```.AsCustomFactory<MyFactory>();``` | ```new CustomFactoryResolver<MyFactory>() as IFactory<SomeClass>```                                                                          |
 
+Adressables と組み合わせることも可能です。
+非同期ロードしたプレハブを Instantiate し GetComponent<T>() を行うファクトリを作ることもできます。
+```
+container
+  .BindAssetReference<SomeComponentOnAddressalbesPrefab>(assetReference)
+  .AsFactory<SomeComponentOnAddressalbesPrefab>();
+```
+```
+[Inject]
+void Construct(IFactory<SomeComponentOnAddressalbesPrefab> factory)
+{
+  var instance = await factory.CreateAsync();
+}
+```
 
 ## インジェクション記述
 
