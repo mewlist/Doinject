@@ -5,28 +5,34 @@ namespace Doinject
 {
     internal class ParallelScope
     {
-        private int Count { get; set; }
+        public int Count { get; private set; }
 
-        private MewCompletionSource CompletionSource { get; } = new();
+        private TaskCompletionSource<bool> taskCompletionSource = new();
 
         public bool Processing => Count > 0;
 
         public void Begin()
         {
-            if (Count == 0) CompletionSource.Reset();
+            if (Count == 0) taskCompletionSource = new TaskCompletionSource<bool>();
             Count++;
         }
 
         public void End()
         {
             Count--;
-            if (Count == 0) CompletionSource.TrySetResult();
+            if (Count == 0) taskCompletionSource.TrySetResult(true);
+        }
+
+        public void Cancel()
+        {
+            taskCompletionSource.TrySetCanceled();
+            Count = 0;
         }
 
         public async ValueTask Wait()
         {
             if (Count == 0) return;
-            await CompletionSource.Awaitable;
+            await taskCompletionSource.Task;
         }
     }
 }
