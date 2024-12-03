@@ -1,32 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Mew.Core;
 using UnityEngine;
 
 namespace Doinject
 {
-    public class TickableMethod
-    {
-        public Action Invoke { get; }
-
-        public TickableMethod(object target, MethodBase methodInfo)
-        {
-            if (target is MonoBehaviour monoBehaviour)
-                Invoke = () =>
-                {
-                    if (monoBehaviour)
-                        methodInfo.Invoke(monoBehaviour, null);
-                };
-            else
-                Invoke = () => methodInfo.Invoke(target, null);
-        }
-
-    }
-
     internal class Ticker : IDisposable
     {
-        private readonly Dictionary<TickableTiming, List<TickableMethod>> invokers = new();
+        private readonly Dictionary<TickableTiming, ConditionalWeakTable<object, MethodBase>> invokers = new();
 
         public Ticker()
         {
@@ -62,8 +46,9 @@ namespace Doinject
             foreach (var methodInfo in methods)
             {
                 if (!invokers.ContainsKey(timing))
-                    invokers[timing] = new List<TickableMethod>();
-                invokers[timing].Add(new TickableMethod(target, methodInfo));
+                    invokers[timing] = new();
+
+                invokers[timing].Add(target, methodInfo);
             }
         }
 
@@ -71,8 +56,22 @@ namespace Doinject
         {
             if (!invokers.TryGetValue(timing, out var methods)) return;
 
-            foreach (var method in methods)
-                method.Invoke();
+            foreach (var x in methods)
+            {
+                var target = x.Key;
+                var method = x.Value;
+
+                if (target is MonoBehaviour monoBehaviour)
+                    method.Invoke(monoBehaviour, null);
+                else
+                    method.Invoke(target, null);
+            }
+        }
+
+        public bool Any(TickableTiming timing)
+        {
+            if (!invokers.TryGetValue(timing, out var methods)) return false;
+            return methods.Any();
         }
     }
 }

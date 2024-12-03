@@ -69,5 +69,37 @@ namespace Doinject.Tests
             }
             Assert.Fail();
         }
+
+        [Test]
+        public async Task WeakReferenceTest()
+        {
+            container.Bind<TickableObject>().To<TickableObject>().AsFactory();
+
+            {
+                var factory = await container.ResolveAsync<Factory<TickableObject>>();
+                var instance = await factory.CreateAsync();
+                await TaskHelperInternal.NextFrame();
+
+                GC.Collect();
+                await TaskHelperInternal.NextFrame();
+
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.Update));
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.FixedUpdate));
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.PreUpdate));
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.EarlyUpdate));
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.PreLateUpdate));
+                Assert.IsTrue(container.Ticker.Any(TickableTiming.PostLateUpdate));
+            }
+
+            GC.Collect();
+            await TaskHelperInternal.NextFrame();
+
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.Update));
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.FixedUpdate));
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.PreUpdate));
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.EarlyUpdate));
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.PreLateUpdate));
+            Assert.IsFalse(container.Ticker.Any(TickableTiming.PostLateUpdate));
+        }
     }
 }

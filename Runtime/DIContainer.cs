@@ -37,7 +37,7 @@ namespace Doinject
         private MethodInjector MethodInjector { get; }
         private PropertyInjector PropertyInjector { get; }
         private FieldInjector FieldInjector { get; }
-        private Ticker Ticker { get; }
+        internal Ticker Ticker { get; }
 
         public IReadOnlyDictionary<TargetTypeInfo, IInternalResolver> ReadOnlyBindings => Resolvers;
         internal IReadOnlyDictionary<TargetTypeInfo, ConcurrentObjectBag> ReadOnlyInstanceMap => ResolvedInstanceBag.ReadOnlyInstanceMap;
