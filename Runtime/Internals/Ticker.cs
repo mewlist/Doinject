@@ -56,15 +56,33 @@ namespace Doinject
         {
             if (!invokers.TryGetValue(timing, out var methods)) return;
 
+            List<object> removeTargets = null;
             foreach (var x in methods)
             {
                 var target = x.Key;
                 var method = x.Value;
 
                 if (target is MonoBehaviour monoBehaviour)
-                    method.Invoke(monoBehaviour, null);
+                {
+                    if (monoBehaviour)
+                    {
+                        method.Invoke(monoBehaviour, null);
+                    }
+                    else
+                    {
+                        removeTargets ??= new List<object>();
+                        removeTargets.Add(target);
+                    }
+                }
                 else
                     method.Invoke(target, null);
+            }
+
+            if (removeTargets != null)
+            {
+                foreach (var x in removeTargets)
+                    methods.Remove(x);
+                removeTargets.Clear();
             }
         }
 
