@@ -290,10 +290,18 @@ namespace Doinject
 
         private async ValueTask InjectIntoInternalAsync<T>(T target, object[] args, ScopedInstance[] scopedInstances)
         {
+            var targetType = target.GetType();
+            if (Resolvers.TryGetValue(new TargetTypeInfo(targetType), out var resolver))
+            {
+                if (resolver is IInstanceResolver { Injected: true })
+                    return;
+            }
+
             InjectionProcessingScope.Begin();
             AfterInjectionProcessingScope.Begin();
 
-            var targetType = target.GetType();
+            TryMarkInjected(targetType);
+
             TargetMethodsInfo targetMethodsInfo;
             TargetPropertiesInfo targetPropertiesInfo;
             TargetFieldsInfo targetFieldsInfo;
@@ -316,8 +324,6 @@ namespace Doinject
                 Debug.LogError(exception.Message);
                 throw exception;
             }
-
-            TryMarkInjected(targetType);
 
             InjectionProcessingScope.End();
             await InvokePostInjectCallback(target, targetMethodsInfo);
