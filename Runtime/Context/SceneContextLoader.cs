@@ -88,6 +88,8 @@ namespace Doinject
 
         private async ValueTask UnloadAsyncInternal(SceneContext context)
         {
+            if (!Application.isPlaying) return;
+
             if (!ChildSceneContexts.Contains(context)) return;
 
             foreach (var childSceneContext in ChildSceneContexts.ToArray())
