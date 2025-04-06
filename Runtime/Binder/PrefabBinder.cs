@@ -82,5 +82,10 @@ namespace Doinject
         {
             return new FactoryBinder<T, Factory<T>>(context, AsTransient());
         }
+
+        public FactoryBinder<T, Factory<TArg1, T>> AsFactory<TArg1>() => new(context, AsTransient());
+        public FactoryBinder<T, Factory<TArg1, TArg2, T>> AsFactory<TArg1, TArg2>() => new(context, AsTransient());
+        public FactoryBinder<T, Factory<TArg1, TArg2, TArg3, T>> AsFactory<TArg1, TArg2, TArg3>() => new(context, AsTransient());
+        public FactoryBinder<T, Factory<TArg1, TArg2, TArg3, TArg4, T>> AsFactory<TArg1, TArg2, TArg3, TArg4>() => new(context, AsTransient());
     }
 }

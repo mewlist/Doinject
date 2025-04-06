@@ -47,7 +47,7 @@ namespace Doinject
 
         private async ValueTask<T> Instantiate(IReadOnlyDIContainer container, object[] args)
         {
-            var instance = await container.InstantiateAsync<TInstance>(Args ?? args);
+            var instance = await container.InstantiateAsync<TInstance>(CombineArgs(Args, args));
             return instance;
         }
 

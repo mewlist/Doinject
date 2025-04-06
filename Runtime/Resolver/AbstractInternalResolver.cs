@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 namespace Doinject
 {
@@ -25,5 +26,13 @@ namespace Doinject
         public abstract ValueTask<T> ResolveAsync(IReadOnlyDIContainer container, object[] args = null);
 
         public abstract ValueTask DisposeAsync();
+
+        protected object[] CombineArgs(object[] args1, object[] args2)
+        {
+            if (args1 == null && args2 == null) return null;
+            if (args1 == null) return args2;
+            if (args2 == null) return args1;
+            return args1.Concat(args2).ToArray();
+        }
     }
 }

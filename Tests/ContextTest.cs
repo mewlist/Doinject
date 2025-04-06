@@ -57,7 +57,7 @@ namespace Doinject.Tests
             Assert.That(Object.FindFirstObjectByType<GameObjectContext>(), Is.EqualTo(goContext));
 
             var testComponent = Object.FindFirstObjectByType<TestMonoBehaviour>();
-            Assert.That(testComponent.InjectedObject, Is.Not.Null);
+            Assert.That(testComponent.InjectedObjects[0], Is.Not.Null);
         }
     }
 }

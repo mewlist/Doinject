@@ -60,7 +60,7 @@ namespace Doinject
 
         private async ValueTask<T> Instantiate(IReadOnlyDIContainer container, object[] args)
         {
-            var instance = (T)await container.InstantiatePrefabAsync(TargetType.Type, Args ?? args, Prefab);
+            var instance = (T)await container.InstantiatePrefabAsync(TargetType.Type, CombineArgs(Args, args), Prefab);
 
             if (Under && instance is Component component)
                 component.transform.SetParent(Under, WorldPositionStays);
