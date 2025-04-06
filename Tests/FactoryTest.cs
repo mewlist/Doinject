@@ -162,7 +162,7 @@ namespace Doinject.Tests
             var instance = await factory.CreateAsync();
             Assert.That(instance, Is.TypeOf<TestMonoBehaviour>());
             Assert.That((instance as TestMonoBehaviour)?.gameObject, Is.EqualTo(gameObject));
-            Assert.That((instance as TestMonoBehaviour)?.InjectedObject, Is.EqualTo(injectedObject));
+            Assert.That((instance as TestMonoBehaviour)?.InjectedObjects[0], Is.EqualTo(injectedObject));
         }
 
         [Test]
@@ -197,7 +197,95 @@ namespace Doinject.Tests
 
             var factory = await container.ResolveAsync<Factory<TestMonoBehaviour>>();
             var instance = await factory.CreateAsync();
-            Assert.That(instance.InjectedObject, Is.EqualTo(injectedInstance));
+            Assert.That(instance.InjectedObjects[0], Is.EqualTo(injectedInstance));
+            Assert.That(instance.InjectedObjects[1], Is.Null);
+            Assert.That(instance.InjectedObjects[2], Is.Null);
+            Assert.That(instance.InjectedObjects[3], Is.Null);
+        }
+
+        [Test]
+        public async Task PrefabFactoryWithMultiArgsTest()
+        {
+            const string prefabGuid = "b1f3d745bc6e3624b852543a31febb12";
+            var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
+            var prefab = AssetDatabase.LoadAssetAtPath<TestMonoBehaviour>(prefabPath);
+
+            var injectedInstances = new[] { new InjectedObject(), new InjectedObject(), new InjectedObject(), new InjectedObject() };
+            container
+                .BindPrefab<TestMonoBehaviour>(prefab)
+                .Args(injectedInstances[0], injectedInstances[1], injectedInstances[2], injectedInstances[3])
+                .AsFactory();
+
+            var factory = await container.ResolveAsync<Factory<TestMonoBehaviour>>();
+            var instance = await factory.CreateAsync();
+            Assert.That(instance.InjectedObjects[0], Is.EqualTo(injectedInstances[0]));
+            Assert.That(instance.InjectedObjects[1], Is.EqualTo(injectedInstances[1]));
+            Assert.That(instance.InjectedObjects[2], Is.EqualTo(injectedInstances[2]));
+            Assert.That(instance.InjectedObjects[3], Is.EqualTo(injectedInstances[3]));
+        }
+
+        [Test]
+        public async Task SingleArgsPrefabFactoryTest()
+        {
+            const string prefabGuid = "b1f3d745bc6e3624b852543a31febb12";
+            var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
+            var prefab = AssetDatabase.LoadAssetAtPath<TestMonoBehaviour>(prefabPath);
+
+            var injectedInstance = new InjectedObject();
+
+            container
+                .BindPrefab<TestMonoBehaviour>(prefab)
+                .AsFactory<InjectedObject>();
+
+            var factory = await container.ResolveAsync<Factory<InjectedObject, TestMonoBehaviour>>();
+            var instance = await factory.CreateAsync(injectedInstance);
+            Assert.That(instance.InjectedObjects[0], Is.EqualTo(injectedInstance));
+            Assert.That(instance.InjectedObjects[1], Is.Null);
+            Assert.That(instance.InjectedObjects[2], Is.Null);
+            Assert.That(instance.InjectedObjects[3], Is.Null);
+        }
+
+        [Test]
+        public async Task MultiArgsPrefabFactoryTest()
+        {
+            const string prefabGuid = "b1f3d745bc6e3624b852543a31febb12";
+            var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
+            var prefab = AssetDatabase.LoadAssetAtPath<TestMonoBehaviour>(prefabPath);
+
+            var injectedInstances = new[] { new InjectedObject(), new InjectedObject(), new InjectedObject(), new InjectedObject() };
+
+            container
+                .BindPrefab<TestMonoBehaviour>(prefab)
+                .AsFactory<InjectedObject, InjectedObject, InjectedObject, InjectedObject>();
+
+            var factory = await container.ResolveAsync<Factory<InjectedObject, InjectedObject, InjectedObject, InjectedObject, TestMonoBehaviour>>();
+            var instance = await factory.CreateAsync(injectedInstances[0], injectedInstances[1], injectedInstances[2], injectedInstances[3]);
+            Assert.That(instance.InjectedObjects[0], Is.EqualTo(injectedInstances[0]));
+            Assert.That(instance.InjectedObjects[1], Is.EqualTo(injectedInstances[1]));
+            Assert.That(instance.InjectedObjects[2], Is.EqualTo(injectedInstances[2]));
+            Assert.That(instance.InjectedObjects[3], Is.EqualTo(injectedInstances[3]));
+        }
+
+        [Test]
+        public async Task MixedArgsPrefabFactoryTest()
+        {
+            const string prefabGuid = "b1f3d745bc6e3624b852543a31febb12";
+            var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
+            var prefab = AssetDatabase.LoadAssetAtPath<TestMonoBehaviour>(prefabPath);
+
+            var injectedInstances = new[] { new InjectedObject(), new InjectedObject(), new InjectedObject(), new InjectedObject() };
+
+            container
+                .BindPrefab<TestMonoBehaviour>(prefab)
+                .Args(injectedInstances[0])
+                .AsFactory<InjectedObject, InjectedObject, InjectedObject>();
+
+            var factory = await container.ResolveAsync<Factory<InjectedObject, InjectedObject, InjectedObject, TestMonoBehaviour>>();
+            var instance = await factory.CreateAsync(injectedInstances[1], injectedInstances[2], injectedInstances[3]);
+            Assert.That(instance.InjectedObjects[0], Is.EqualTo(injectedInstances[0]));
+            Assert.That(instance.InjectedObjects[1], Is.EqualTo(injectedInstances[1]));
+            Assert.That(instance.InjectedObjects[2], Is.EqualTo(injectedInstances[2]));
+            Assert.That(instance.InjectedObjects[3], Is.EqualTo(injectedInstances[3]));
         }
 
         [TestCase(9)]

@@ -69,7 +69,7 @@ namespace Doinject
             if (Under)
                 return await container.InstantiateMonoBehaviourAsync<TInstance>(Under, WorldPositionStays, Args);
 
-            return await container.InstantiateMonoBehaviourAsync<TInstance>(On, Args ?? args);
+            return await container.InstantiateMonoBehaviourAsync<TInstance>(On, CombineArgs(Args, args));
         }
 
         public async Task TryCacheAsync(DIContainer container)

@@ -30,7 +30,7 @@ namespace Doinject
             CachingCompletionSource = new MewCompletionSource();
 
             var instance = await container.InstantiateAsync<TFactory>(
-                Args ?? args,
+                CombineArgs(Args, args),
                 Array.Empty<ScopedInstance>());
             InstanceBag.Add(TargetType, instance);
             CachingCompletionSource?.TrySetResult();
