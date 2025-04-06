@@ -9,7 +9,30 @@ Asynchronous DI Container for Unity
 
 * [日本語Readmeはこちら](https://github.com/mewlist/Doinject/blob/main/README_ja.md)
 
-## Documentation 
+## Table of Contents
+
+- [Documentation](#documentation)
+- [Example Project](#example-project)
+- [Installation](#installation)
+  - [Install via Unity Package Manager](#install-via-unity-package-manager)
+- [About Doinject](#about-doinject)
+  - [Concepts](#concepts)
+    - [Asynchronous DI Containers](#asynchronous-di-containers)
+    - [Context Scopes Aligned with Unity's Lifecycle](#context-scopes-aligned-with-unitys-lifecycle)
+    - [Integration with the Addressable Asset System](#integration-with-the-addressable-asset-system)
+    - [Simplified Dependency Patterns](#simplified-dependency-patterns)
+  - [Binding](#binding)
+    - [Type Binding](#type-binding)
+    - [MonoBehaviour Binding](#monobehaviour-binding)
+    - [Addressables Binding](#addressables-binding)
+    - [Factory Binding](#factory-binding)
+  - [Injection](#injection)
+    - [Installer](#installer)
+    - [Constructor Injection](#constructor-injection)
+    - [Method Injection](#method-injection)
+    - [Injection into MonoBehaviours](#injection-into-monobehaviours)
+
+## Documentation
 
 [![Build documentation](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml/badge.svg)](https://github.com/mewlist/Doinject/actions/workflows/writerside.yml)
 
@@ -25,7 +48,6 @@ Asynchronous DI Container for Unity
 
 ### Install via Unity Package Manager
 
-Install via Unity Package Manager
 Please install the packages in the following order:
 
 ```
@@ -38,61 +60,71 @@ https://github.com/mewlist/Doinject.git
 
 # About Doinject
 
-Doinject is an asynchronous DI (Dependency Injection) framework for Unity.
+Doinject is an asynchronous Dependency Injection (DI) framework for Unity.
 
-The concept of asynchronous DI containers is the starting point.
-Unity 2022 LTS / Unity 6 are supported.
+It is built around the concept of an asynchronous DI container.
+Supports Unity 2022.3 LTS / Unity 6 and later.
 
 ## Concepts
 
 ### Asynchronous DI Containers
 
-Typical DI containers perform a synchronous process when generating registered types.
-However, it cannot support the asynchronous instantiation function used in Unity or instance creation methods that require some kind of asynchronous processing.
+Traditional DI containers typically create instances synchronously.
+However, this approach doesn't easily support Unity's asynchronous operations, such as loading assets or fetching data before an object can be fully initialized.
 
-By introducing Doinject, you can use a DI container that supports instance creation and release through asynchronous processing.
-This allows instance creation with asynchronous loading through Addressables Asset Systems, or instance creation based on information loaded from asynchronous IO.
-It becomes possible to perform more flexible instance management with simple descriptions.
-By creating a custom factory, you can create instances that involve any asynchronous processing.
+Doinject provides a DI container designed for asynchronous workflows. It supports creating and disposing of instances through asynchronous processes.
+This allows for more flexible dependency management with a clear API, enabling scenarios like:
+*   Instantiating objects after asynchronously loading their prefabs or assets via the Addressables system.
+*   Initializing services with data fetched asynchronously from a network or file.
+Custom factories can be created to handle any asynchronous instantiation logic.
 
-### Context Space Consistent with Unity's Lifecycle
+### Context Scopes Aligned with Unity's Lifecycle
 
-Designed to define context spaces in a way that does not conflict with Unity's lifecycle.
-When a scene is closed, the context associated with that scene is closed, the instances created in that context space disappear, and
-destroying a GameObject with context similarly closes the context.
-Context spaces are automatically structured by the framework, and parent-child relationships are formed when multiple contexts are loaded.
+Doinject defines context scopes that naturally align with Unity's object lifecycle:
+*   **Project Context:** Lives for the entire application duration.
+*   **Scene Context:** Tied to a specific scene's lifetime. When the scene is unloaded, the context and its associated instances are disposed.
+*   **GameObject Context:** Tied to a specific GameObject's lifetime. When the GameObject is destroyed, the context and its instances are disposed.
+These contexts automatically form parent-child relationships (e.g., Scene Context inherits from Project Context), allowing dependencies to be resolved hierarchically.
 
+### Integration with the Addressable Asset System
 
-### Collaboration with the Addressable Asset System
+Doinject seamlessly integrates with Unity's Addressable Asset System.
+You can bind Addressable assets directly, and Doinject will automatically handle loading the asset asynchronously when needed and releasing its handle when the associated context is disposed. This simplifies resource management significantly compared to manual handle tracking.
 
-Instances from the Addressable Asset System can also be handled, and the release of load handles can be automated.
-Resource management in Addressables requires careful implementation, such as creating your own resource management system.
-However, using Doinject automates the loading and release of Addressables.
+### Simplified Dependency Patterns
 
-### Simple coding
-
-You can achieve replacements for the factory pattern, (context-closed) singleton pattern, and service locator pattern with simple descriptions.
-Additionally, by creating custom factories or custom resolvers, you can handle more complex instance creation scenarios.
+Doinject simplifies the implementation of common dependency management patterns:
+*   **Factory Pattern:** Easily bind factories for creating instances on demand.
+*   **Singleton Pattern:** Bind objects as singletons scoped to their context (Project, Scene, or GameObject).
+*   **Service Locator:** While DI is generally preferred, Doinject can be used to manage globally or locally accessible services.
+Custom factories and resolvers offer further flexibility for complex instantiation logic.
 
 
 ## Binding
 
 ### Type Binding
 
-| Code                                                                  | Resolver behavior　                      | Type      |
+| Code                                                                  | Resolver Behavior                       | Type      |
 |-----------------------------------------------------------------------|-----------------------------------------|-----------|
 | ```container.Bind<SomeClass>();```                                    | ```new SomeClass()```                   | cached    |
-| ```container.Bind<SomeClass>().AsSingleton();```　                     | ```new SomeClass()```                   | singleton |
-| ```container.Bind<SomeClass>().AsTransient();```　                     | ```new SomeClass()```                   | transient |
-| ```container.Bind<SomeClass>().Args(123,"ABC");```　                   | ```new SomeClass(123, "abc")```         | cached    |
-| ```container.Bind<ISomeInterface>().To<SomeClass>();```　              | ```new SomeClass() as ISomeInterface``` | cached    |
-| ```container.Bind<ISomeInterface, SomeClass>();```　                   | ```new SomeClass() as ISomeInterface``` | cached    |
+| ```container.Bind<SomeClass>().AsSingleton();```                     | ```new SomeClass()```                   | singleton |
+| ```container.Bind<SomeClass>().AsTransient();```                     | ```new SomeClass()```                   | transient |
+| ```container.Bind<SomeClass>().Args(123,"ABC");```                   | ```new SomeClass(123, "abc")```         | cached    |
+| ```container.Bind<ISomeInterface>().To<SomeClass>();```              | ```new SomeClass() as ISomeInterface``` | cached    |
+| ```container.Bind<ISomeInterface, SomeClass>();```                   | ```new SomeClass() as ISomeInterface``` | cached    |
 | ```container.Bind<SomeClass>()```<br />```.FromInstance(instance);``` | ```instance```                          | instance  |
 | ```container.BindInstance(instance);```                               | ```instance```                          | instance  |
 
+**Binding Lifetimes:**
+
+*   **`cached` (Default):** Creates an instance on the first resolution within its container and reuses that same instance for subsequent requests within that container. The instance is disposed (if `IDisposable` or `IAsyncDisposable`) when the container is disposed.
+*   **`singleton`:** Creates a single instance within the context scope where it was first resolved. This instance persists for the lifetime of that context and is reused for all requests within that context and its child contexts. It is disposed when the context is disposed.
+*   **`transient`:** Creates a new instance every time it is resolved. Doinject does not manage the lifecycle (creation/disposal) of transient instances beyond initial creation; manual disposal might be necessary.
+*   **`instance`:** Binds a pre-existing instance to the container. Doinject does not manage the lifecycle (creation/disposal) of this instance.
+
 ### MonoBehaviour Binding
 
-| Code                                                                  | Resolver behavior　                      |
+| Code                                                                  | Resolver Behavior                       |
 |---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | ```container.Bind<SomeComponent>();```                              | ```new GameObject().AddComponent<SomeComponent>()```                                                                    |
 | ```container```<br />```.Bind<SomeComponent>()```<br />```.Under(transform);``` | ```var instance = new GameObject().AddComponent<SomeComponent>();```<br/>```instance.transform.SetParent(transform);``` |
@@ -101,31 +133,30 @@ Additionally, by creating custom factories or custom resolvers, you can handle m
 
 ### Addressables Binding
 
-
-| Code                                                                  | Resolver behavior　                      |
+| Code                                                                  | Resolver Behavior                       |
 |--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ```container```<br />```.BindAssetReference<SomeAddressalbesObject>(assetReference);```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(assetReference)```<br/><br/>```await handle.Task```　                                                                                    |
+| ```container```<br />```.BindAssetReference<SomeAddressableObject>(assetReference);```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(assetReference)```<br/><br/>```await handle.Task```                                                                                       |
 | ```container```<br />```.BindPrefabAssetReference<SomeComponent>(prefabAssetReference);``` | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>(prefabAssetReference)```<br/><br/>```var prefab = await handle.Task```<br/><br/>```Instantiate(prefab).GetComponent<SomeComponent>()``` |
-| ```container```<br />```.BindAssetRuntimeKey<SomeAddressalbesObject>("guid or path");```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>("guid or path")```<br/><br/>```await handle.Task```　                                                                                    |
+| ```container```<br />```.BindAssetRuntimeKey<SomeAddressableObject>("guid or path");```    | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>("guid or path")```<br/><br/>```await handle.Task```　                                                                                    |
 | ```container```<br />```.BindPrefabAssetRuntimeKey<SomeComponent>("guid or path");```      | ```var handle = Addressables```<br />```.LoadAssetAsync<GameObject>("guid or path")```<br/><br/>```var prefab = await handle.Task```<br/><br/>```Instantiate(prefab).GetComponent<SomeComponent>()```       |
 
 ### Factory Binding
 
-| Code                                                                  | Resolver behavior　                      |
+| Code                                                                  | Resolver Behavior                       |
 |-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ```container```<br />```.Bind<SomeClass>()```<br />```.AsFactory();```                  | ```var resolver = new TypeResolver<SomeClass>()```<br/><br/>```new Factory<SomeClass>(resolver) as IFactory<SomeClass>```                                   |
 | ```container```<br />```.Bind<SomeComponent>()```<br />```.AsFactory();```              | ```var resolver = new MonoBehaviourResolver<SomeComponent>()```<br/><br/>```new Factory<SomeComponent>(resolver))```<br />``` as IFactory<SomeComponent>``` |
 | ```container```<br />```.Bind<SomeClass>()```<br />```.AsCustomFactory<MyFactory>();``` | ```new CustomFactoryResolver<MyFactory>() as IFactory<SomeClass>```                                                                          |
 
 
-Can also be combined with Addressables.
-You can also create a factory that instantiates the asynchronously loaded prefab and calls GetComponent<T>() on it.
-```
+Factory bindings can also be combined with Addressables.
+For example, you can create a factory that asynchronously loads a prefab via Addressables, instantiates it, and returns a specific component:
+```cs
 container
   .BindAssetReference<SomeComponentOnAddressalbesPrefab>(assetReference)
   .AsFactory<SomeComponentOnAddressalbesPrefab>();
 ```
-```
+```cs
 [Inject]
 void Construct(IFactory<SomeComponentOnAddressalbesPrefab> factory)
 {
@@ -170,15 +201,26 @@ class ExampleClass
 }
 ```
 
-### Injection to MonoBehaviour
+### Injection into MonoBehaviours
+
+To enable injection into a `MonoBehaviour`, it must implement the `IInjectableComponent` interface. Dependencies can then be injected via constructor (if applicable) or method injection.
 
 ```cs
-// Inherits IInjectableComponent
-class ExampleComponent : MonoBehaviour, IInjectableComponent
+using UnityEngine;
+using Doinject;
+
+// Inherit from MonoBehaviour and implement IInjectableComponent
+public class ExampleComponent : MonoBehaviour, IInjectableComponent
 {
-    // Method Injection
+    private SomeClass _someClassDependency;
+
+    // Method Injection using [Inject] attribute
     [Inject]
     public void Construct(SomeClass someClass)
-    { ... }
+    {
+        _someClassDependency = someClass;
+        // ... use the dependency
+    }
 }
 ```
+The container automatically finds and calls methods marked with `[Inject]` on components that implement `IInjectableComponent` within its context scope after the component is enabled.

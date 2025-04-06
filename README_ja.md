@@ -7,6 +7,29 @@ Asynchronous DI Container for Unity
 ![](https://img.shields.io/badge/unity-2023.2%20or%20later-green?logo=unity)
 [![](https://img.shields.io/badge/license-MIT-blue)](https://github.com/mewlist/MewAssets/blob/main/LICENSE)
 
+## 目次
+
+- [ドキュメント](#ドキュメント)
+- [サンプルプロジェクト](#サンプルプロジェクト)
+- [インストール](#インストール)
+  - [Unity Package Manager でインストール](#unity-package-manager-でインストール)
+- [Doinject について](#doinject-について)
+  - [コンセプト](#コンセプト)
+    - [非同期DIコンテナ](#非同期diコンテナ)
+    - [Unity のライフサイクルと矛盾しないコンテクスト空間](#unity-のライフサイクルと矛盾しないコンテクスト空間)
+    - [Addressable Asset System との連携](#addressable-asset-system-との連携)
+    - [平易な記述](#平易な記述)
+  - [バインド記述](#バインド記述)
+    - [型バインディング](#型バインディング)
+    - [MonoBehaviour バインディング](#monobehaviour-バインディング)
+    - [Addressables バインディング](#addressables-バインディング)
+    - [ファクトリバインディング](#ファクトリバインディング)
+  - [インジェクション記述](#インジェクション記述)
+    - [インストーラー](#インストーラー)
+    - [コンストラクタインジェクション](#コンストラクタインジェクション)
+    - [メソッドインジェクション](#メソッドインジェクション)
+    - [MonoBehaviour へのインジェクション](#monobehaviour-へのインジェクション)
+
 ## ドキュメント
 
 * [日本語ドキュメント](https://mewlist.github.io/Doinject)
@@ -83,6 +106,13 @@ Doinject を使うと、Addressables のロード・解放を勝手にやって�
 | ```container.Bind<SomeClass>()```<br />```.FromInstance(instance);```  | ```instance```                          | instance  |
 | ```container.BindInstance(instance);```                    | ```instance```                          | instance  |
 
+**提供タイプ（ライフタイム）について:**
+
+*   **cached (デフォルト):** コンテナ内で最初に解決されたときにインスタンスが生成され、以降はそのコンテナ内でのリクエストに対して同じインスタンスが再利用されます。コンテナが破棄されるとインスタンスも破棄（`IDisposable` や `IAsyncDisposable` を実装していれば `Dispose`/`DisposeAsync` が呼ばれる）されます。
+*   **singleton:** コンテクストスコープのシングルトン。最初に解決されたコンテクスト内でインスタンスが生成され、そのコンテクストが有効な間、単一のインスタンスが維持されます。コンテクストが破棄されるとインスタンスも破棄されます。親コンテクストで singleton として束縛されたインスタンスは、子コンテクストからも利用できます。
+*   **transient:** 解決されるたびに新しいインスタンスが生成されます。インスタンスのライフサイクル管理は Doinject の管理外となります（手動での破棄が必要です）。
+*   **instance:** 既存のインスタンスをバインドします。コンテナはそのインスタンスの生成や破棄に関与しません。
+
 ### MonoBehaviour バインディング
 
 | 記述                                                                  | リゾルバの動作　                                                                                                                |
@@ -111,12 +141,12 @@ Doinject を使うと、Addressables のロード・解放を勝手にやって�
 
 Adressables と組み合わせることも可能です。
 非同期ロードしたプレハブを Instantiate し GetComponent<T>() を行うファクトリを作ることもできます。
-```
+```cs
 container
   .BindAssetReference<SomeComponentOnAddressalbesPrefab>(assetReference)
   .AsFactory<SomeComponentOnAddressalbesPrefab>();
 ```
-```
+```cs
 [Inject]
 void Construct(IFactory<SomeComponentOnAddressalbesPrefab> factory)
 {
