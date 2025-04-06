@@ -252,7 +252,7 @@ namespace Doinject
 
         public async ValueTask<object> InstantiatePrefabAsync(Type targetType, object[] args, Object prefab)
         {
-            var prefabInstance = Object.Instantiate(prefab);
+            var prefabInstance = Object.Instantiate(prefab, Scene.IsValid() ? Scene : default);
             var (instance, go) = prefabInstance switch
             {
                 GameObject gameObject
@@ -261,9 +261,6 @@ namespace Doinject
                     => (component.GetComponent(targetType), component.gameObject),
                 _ => (null, null)
             };
-
-            if (Scene.IsValid())
-                SceneManager.MoveGameObjectToScene(go, Scene);
 
             if (go.GetComponent(typeof(IGameObjectContextRoot)))
                 return instance;
