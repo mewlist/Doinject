@@ -110,10 +110,6 @@ namespace Doinject
                 = GetComponentsUnderContext<IInjectableComponent>()
                     .Where(x => x.enabled);
 
-            var gameObjectContexts
-                = GetComponentsUnderContext<GameObjectContext>()
-                    .Where(x => x.enabled);
-
             try
             {
                 await ContextInternal.RawContainer.GenerateResolvers();
@@ -134,6 +130,10 @@ namespace Doinject
             }
             using (new ContextSpaceScope(this))
             {
+                var gameObjectContexts
+                    = GetComponentsUnderContext<GameObjectContext>()
+                        .Where(x => x.enabled);
+
                 foreach (var gameObjectContext in gameObjectContexts)
                 {
                     await gameObjectContext.Shutdown();
