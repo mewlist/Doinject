@@ -44,7 +44,12 @@ namespace Doinject.Assets
             T instance = default;
             await TaskQueue.EnqueueAsync(async ct =>
             {
-                if (Instance is not null) return;
+                if (Instance is not null)
+                {
+                    // Already loaded
+                    instance = Instance;
+                    return;
+                }
                 instance = await AssetLoader.LoadAsync<T>(RuntimeKey, ct);
             }).OnException(Debug.LogException);
             return instance;
